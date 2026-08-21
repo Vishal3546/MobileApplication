@@ -36,7 +36,7 @@ jobs:
       run: |
         cd admin
         npm ci
-        npm test -- --watch=false --pool=threads
+        npm test -- --watch=false
         npx ng build --configuration production
 
   android-test:
