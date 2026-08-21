@@ -35,6 +35,7 @@ android/.idea/
 android/captures/
 android/.externalNativeBuild/
 android/.cxx/
+!android/gradle/wrapper/gradle-wrapper.jar
 
 # VS Code
 .vscode/*
