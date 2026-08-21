@@ -1,6 +1,6 @@
 {
     "java.configuration.updateBuildConfiguration": "interactive",
-    "java.import.gradle.java.home": "C:/Users/user/.jdks/openjdk-23.0.1",
-    "java.jdt.ls.java.home": "C:/Users/user/.jdks/openjdk-23.0.1",
+    "java.import.gradle.java.home": "C:/Program Files/Android/Android Studio/jbr",
+    "java.jdt.ls.java.home": "C:/Program Files/Android/Android Studio/jbr",
     "java.format.settings.url": ".vscode/java-formatter.xml"
 }
