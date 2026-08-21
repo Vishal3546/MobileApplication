@@ -44,3 +44,4 @@ android/.cxx/
 !.vscode/launch.json
 !.vscode/extensions.json
 *.code-workspace
+.vscode/settings.json
