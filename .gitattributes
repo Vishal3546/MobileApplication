@@ -1,0 +1,6 @@
+* text=auto
+
+# Bash scripts must always have LF line endings to execute on Linux/Unix
+*.sh text eol=lf
+mvnw text eol=lf
+gradlew text eol=lf
