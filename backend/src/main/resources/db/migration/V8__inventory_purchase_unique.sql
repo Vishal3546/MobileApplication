@@ -1,0 +1,1 @@
+ALTER TABLE inventory_items ADD CONSTRAINT inventory_items_purchase_transaction_id_key UNIQUE (purchase_transaction_id);

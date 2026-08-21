@@ -1,0 +1,27 @@
+spring:
+  datasource:
+    url: jdbc:tc:postgresql:15-alpine:///testdb
+    driverClassName: org.testcontainers.jdbc.ContainerDatabaseDriver
+    username: test
+    password: test
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+  flyway:
+    enabled: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+jwt:
+  secret: verysecuresecretkeythatislongenoughforhs256
+  expirationMs: 3600000
+  refreshExpirationMs: 86400000
+
+app:
+  storage:
+    local:
+      root-dir: ./test-storage

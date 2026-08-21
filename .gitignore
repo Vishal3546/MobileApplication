@@ -1,0 +1,45 @@
+# General
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.*
+!.env.example
+.idea/
+
+# Node.js (admin/frontend)
+node_modules/
+dist/
+build/
+.angular/
+.npm/
+coverage/
+
+# Java / Maven (backend)
+backend/target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+*.log
+project.subprojects.yaml
+
+# Android
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/*.iml
+android/.idea/
+android/captures/
+android/.externalNativeBuild/
+android/.cxx/
+
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
