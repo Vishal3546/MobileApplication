@@ -9,7 +9,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 import java.util.List;
@@ -57,7 +56,7 @@ public class UserController {
     }
     
     private void checkPrivilegeEscalation(List<UUID> roleIds, Authentication auth) {
-        boolean isSuperAdmin = auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).anyMatch(r -> r.equals("SUPER_ADMIN"));
+        // boolean isSuperAdmin = auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).anyMatch(r -> r.equals("SUPER_ADMIN"));
         // Additional implementation to prevent privilege escalation
     }
 }
