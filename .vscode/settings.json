@@ -1,6 +1,7 @@
 {
     "java.configuration.updateBuildConfiguration": "interactive",
-    "java.import.gradle.java.home": "C:/Users/user/.jdks/openjdk-23.0.1",
-    "java.jdt.ls.java.home": "C:/Users/user/.jdks/openjdk-23.0.1",
-    "java.format.settings.url": ".vscode/java-formatter.xml"
+    "java.import.gradle.java.home": "C:/Program Files/Eclipse Adoptium/jdk-17.0.20.8-hotspot",
+    "java.jdt.ls.java.home": "C:/Program Files/Eclipse Adoptium/jdk-17.0.20.8-hotspot",
+    "java.format.settings.url": ".vscode/java-formatter.xml",
+    "java.compile.nullAnalysis.mode": "automatic"
 }
