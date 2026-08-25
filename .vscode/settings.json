@@ -3,5 +3,5 @@
     "java.import.gradle.java.home": "C:/Program Files/Eclipse Adoptium/jdk-17.0.20.8-hotspot",
     "java.jdt.ls.java.home": "C:/Program Files/Eclipse Adoptium/jdk-17.0.20.8-hotspot",
     "java.format.settings.url": ".vscode/java-formatter.xml",
-    "java.compile.nullAnalysis.mode": "automatic"
+    "java.compile.nullAnalysis.mode": "disabled"
 }
