@@ -18,8 +18,8 @@ import { AuthService } from '../../core/auth/auth.service';
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
         <mat-card-content>
           <mat-form-field appearance="fill" class="full-width">
-            <mat-label>Email</mat-label>
-            <input matInput formControlName="email" type="email">
+            <mat-label>Username*</mat-label>
+            <input matInput formControlName="username" type="text" placeholder="Enter username">
           </mat-form-field>
           <mat-form-field appearance="fill" class="full-width">
             <mat-label>Password</mat-label>
@@ -49,7 +49,7 @@ export class LoginComponent {
   private router = inject(Router);
 
   loginForm = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
+    username: ['', [Validators.required]],
     password: ['', Validators.required]
   });
 
