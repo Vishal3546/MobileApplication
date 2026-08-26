@@ -1,6 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -22,7 +23,7 @@ export class AuthService {
   }
 
   login(credentials: any): Observable<any> {
-    return this.http.post('/api/v1/auth/login', credentials).pipe(
+    return this.http.post(`${environment.apiUrl}/api/v1/auth/login`, credentials).pipe(
       tap((res: any) => {
         if (res.data && res.data.token) {
           localStorage.setItem(this.TOKEN_KEY, res.data.token);
@@ -46,7 +47,7 @@ export class AuthService {
 
   refreshToken(): Observable<any> {
     const refreshToken = localStorage.getItem('refresh_token');
-    return this.http.post('/api/v1/auth/refresh', { refreshToken }).pipe(
+    return this.http.post(`${environment.apiUrl}/api/v1/auth/refresh`, { refreshToken }).pipe(
       tap((res: any) => {
         if (res.data && res.data.accessToken) {
           localStorage.setItem(this.TOKEN_KEY, res.data.accessToken);
