@@ -66,6 +66,9 @@ public class CurrentUserService {
                 return true;
             }
         }
-        return false;
+        
+        // Fallback: SUPER_ADMIN bypasses explicit permission mapping
+        return getCurrentUser().getRoles().stream()
+                .anyMatch(role -> role.getName().equals("SUPER_ADMIN"));
     }
 }
