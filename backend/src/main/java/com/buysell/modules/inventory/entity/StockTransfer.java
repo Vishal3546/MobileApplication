@@ -6,6 +6,7 @@ import com.buysell.modules.inventory.enums.TransferStatus;
 import com.buysell.modules.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -13,7 +14,7 @@ import java.util.List;
 
 @Getter
 @Setter
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -35,6 +36,11 @@ public class StockTransfer extends BaseEntity {
     @Column(name = "status", nullable = false)
     @Builder.Default
     private TransferStatus status = TransferStatus.DRAFT;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "transfer_type", nullable = false)
+    @Builder.Default
+    private StockTransferType transferType = StockTransferType.INTERNAL;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "requested_by")

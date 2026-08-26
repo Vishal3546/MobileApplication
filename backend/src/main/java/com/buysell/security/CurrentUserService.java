@@ -5,6 +5,10 @@ import com.buysell.modules.user.entity.EmployeeProfile;
 import com.buysell.modules.user.entity.User;
 import com.buysell.modules.user.repository.EmployeeProfileRepository;
 import com.buysell.modules.user.repository.UserRepository;
+import com.buysell.modules.shop.entity.Shop;
+import com.buysell.modules.shop.entity.ShopMembership;
+import com.buysell.modules.shop.entity.ShopMembershipStatus;
+import com.buysell.modules.shop.repository.ShopMembershipRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -20,6 +24,7 @@ public class CurrentUserService {
 
     private final UserRepository userRepository;
     private final EmployeeProfileRepository employeeProfileRepository;
+    private final ShopMembershipRepository shopMembershipRepository;
 
     public UserDetailsImpl getCurrentUserDetails() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -55,6 +60,15 @@ public class CurrentUserService {
         return branch;
     }
 
+    public ShopMembership getCurrentShopMembership() {
+        return shopMembershipRepository.findByUserIdAndStatus(getCurrentUserId(), ShopMembershipStatus.ACTIVE)
+                .orElseThrow(() -> new AccessDeniedException("User is not assigned to an active shop"));
+    }
+
+    public Shop getCurrentShop() {
+        return getCurrentShopMembership().getShop();
+    }
+
     public boolean isSuperAdmin() {
         return hasPermission("SUPER_ADMIN"); // Alternatively check role
     }
@@ -70,5 +84,19 @@ public class CurrentUserService {
         // Fallback: SUPER_ADMIN bypasses explicit permission mapping
         return getCurrentUser().getRoles().stream()
                 .anyMatch(role -> role.getName().equals("SUPER_ADMIN"));
+    }
+
+    public boolean hasAccessToBranch(Branch branch) {
+        if (isSuperAdmin()) {
+            return true;
+        }
+        
+        ShopMembership membership = shopMembershipRepository.findByUserIdAndStatus(getCurrentUserId(), ShopMembershipStatus.ACTIVE).orElse(null);
+        if (membership != null && membership.getRole() != com.buysell.modules.shop.entity.ShopMembershipRole.EMPLOYEE) {
+            return branch.getShop().getId().equals(membership.getShop().getId());
+        }
+        
+        // Fallback to employee profile branch
+        return branch.getId().equals(getCurrentBranch().getId());
     }
 }

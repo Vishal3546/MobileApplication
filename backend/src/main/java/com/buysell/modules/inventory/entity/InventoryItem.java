@@ -8,13 +8,14 @@ import com.buysell.modules.purchase.entity.PurchaseTransaction;
 import com.buysell.modules.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 
 @Getter
 @Setter
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -40,6 +41,11 @@ public class InventoryItem extends BaseEntity {
     @Column(name = "status", nullable = false)
     @Builder.Default
     private InventoryStatus status = InventoryStatus.AVAILABLE;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "visibility", nullable = false)
+    @Builder.Default
+    private InventoryVisibility visibility = InventoryVisibility.PRIVATE;
 
     @Column(name = "cost_price", nullable = false)
     private BigDecimal costPrice;

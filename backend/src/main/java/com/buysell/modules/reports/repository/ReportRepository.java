@@ -20,13 +20,13 @@ public class ReportRepository {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    public SalesReportResponse getSalesReport(UUID branchId, ZonedDateTime start, ZonedDateTime end) {
+    public SalesReportResponse getSalesReport(java.util.List<UUID> branchIds, ZonedDateTime start, ZonedDateTime end) {
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("start", start.toOffsetDateTime())
                 .addValue("end", end.toOffsetDateTime());
         
-        String branchFilter = branchId != null ? " AND branch_id = :branchId " : "";
-        if (branchId != null) params.addValue("branchId", branchId);
+        String branchFilter = branchIds != null ? " AND branch_id IN (:branchIds) " : "";
+        if (branchIds != null && !branchIds.isEmpty()) params.addValue("branchIds", branchIds);
 
         String sql = "SELECT " +
                 "COUNT(id) as sales_count, " +
@@ -54,13 +54,13 @@ public class ReportRepository {
         );
     }
 
-    public PurchaseReportResponse getPurchaseReport(UUID branchId, ZonedDateTime start, ZonedDateTime end) {
+    public PurchaseReportResponse getPurchaseReport(java.util.List<UUID> branchIds, ZonedDateTime start, ZonedDateTime end) {
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("start", start.toOffsetDateTime())
                 .addValue("end", end.toOffsetDateTime());
         
-        String branchFilter = branchId != null ? " AND branch_id = :branchId " : "";
-        if (branchId != null) params.addValue("branchId", branchId);
+        String branchFilter = branchIds != null ? " AND branch_id IN (:branchIds) " : "";
+        if (branchIds != null && !branchIds.isEmpty()) params.addValue("branchIds", branchIds);
 
         String sql = "SELECT " +
                 "COUNT(id) as purchase_count, " +
@@ -82,10 +82,10 @@ public class ReportRepository {
         );
     }
 
-    public InventoryReportResponse getInventoryReport(UUID branchId) {
+    public InventoryReportResponse getInventoryReport(java.util.List<UUID> branchIds) {
         MapSqlParameterSource params = new MapSqlParameterSource();
-        String branchFilter = branchId != null ? " AND branch_id = :branchId " : "";
-        if (branchId != null) params.addValue("branchId", branchId);
+        String branchFilter = branchIds != null ? " AND branch_id IN (:branchIds) " : "";
+        if (branchIds != null && !branchIds.isEmpty()) params.addValue("branchIds", branchIds);
 
         String sql = "SELECT " +
                 "COUNT(id) as total_inventory, " +
@@ -139,15 +139,15 @@ public class ReportRepository {
         return sortClause.substring(0, sortClause.length() - 2) + " ";
     }
 
-    public Page<SaleReportDetail> getSalesDetailedReport(UUID branchId, ZonedDateTime start, ZonedDateTime end, Pageable pageable) {
+    public Page<SaleReportDetail> getSalesDetailedReport(java.util.List<UUID> branchIds, ZonedDateTime start, ZonedDateTime end, Pageable pageable) {
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("start", start.toOffsetDateTime())
                 .addValue("end", end.toOffsetDateTime())
                 .addValue("limit", pageable.getPageSize())
                 .addValue("offset", pageable.getOffset());
 
-        String branchFilter = branchId != null ? " AND st.branch_id = :branchId " : "";
-        if (branchId != null) params.addValue("branchId", branchId);
+        String branchFilter = branchIds != null ? " AND st.branch_id IN (:branchIds) " : "";
+        if (branchIds != null && !branchIds.isEmpty()) params.addValue("branchIds", branchIds);
 
         String baseQuery = "FROM sale_transactions st " +
                 "JOIN inventory_items ii ON st.inventory_item_id = ii.id " +
@@ -184,15 +184,15 @@ public class ReportRepository {
         return new PageImpl<>(content, pageable, total);
     }
 
-    public Page<PurchaseReportDetail> getPurchaseDetailedReport(UUID branchId, ZonedDateTime start, ZonedDateTime end, Pageable pageable) {
+    public Page<PurchaseReportDetail> getPurchaseDetailedReport(java.util.List<UUID> branchIds, ZonedDateTime start, ZonedDateTime end, Pageable pageable) {
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("start", start.toOffsetDateTime())
                 .addValue("end", end.toOffsetDateTime())
                 .addValue("limit", pageable.getPageSize())
                 .addValue("offset", pageable.getOffset());
 
-        String branchFilter = branchId != null ? " AND pt.branch_id = :branchId " : "";
-        if (branchId != null) params.addValue("branchId", branchId);
+        String branchFilter = branchIds != null ? " AND pt.branch_id IN (:branchIds) " : "";
+        if (branchIds != null && !branchIds.isEmpty()) params.addValue("branchIds", branchIds);
 
         String baseQuery = "FROM purchase_transactions pt " +
                 "JOIN devices d ON pt.device_id = d.id " +
@@ -226,13 +226,13 @@ public class ReportRepository {
         return new PageImpl<>(content, pageable, total);
     }
 
-    public Page<InventoryReportDetail> getInventoryDetailedReport(UUID branchId, Pageable pageable) {
+    public Page<InventoryReportDetail> getInventoryDetailedReport(java.util.List<UUID> branchIds, Pageable pageable) {
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("limit", pageable.getPageSize())
                 .addValue("offset", pageable.getOffset());
 
-        String branchFilter = branchId != null ? " AND ii.branch_id = :branchId " : "";
-        if (branchId != null) params.addValue("branchId", branchId);
+        String branchFilter = branchIds != null ? " AND ii.branch_id IN (:branchIds) " : "";
+        if (branchIds != null && !branchIds.isEmpty()) params.addValue("branchIds", branchIds);
 
         String baseQuery = "FROM inventory_items ii " +
                 "JOIN devices d ON ii.device_id = d.id " +
@@ -267,13 +267,13 @@ public class ReportRepository {
         return new PageImpl<>(content, pageable, total);
     }
 
-    public void streamSalesDetailedReport(UUID branchId, ZonedDateTime start, ZonedDateTime end, com.buysell.modules.reports.service.ReportExportService exportService, jakarta.servlet.http.HttpServletResponse response) {
+    public void streamSalesDetailedReport(java.util.List<UUID> branchIds, ZonedDateTime start, ZonedDateTime end, com.buysell.modules.reports.service.ReportExportService exportService, jakarta.servlet.http.HttpServletResponse response) {
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("start", start.toOffsetDateTime())
                 .addValue("end", end.toOffsetDateTime());
 
-        String branchFilter = branchId != null ? " AND st.branch_id = :branchId " : "";
-        if (branchId != null) params.addValue("branchId", branchId);
+        String branchFilter = branchIds != null ? " AND st.branch_id IN (:branchIds) " : "";
+        if (branchIds != null && !branchIds.isEmpty()) params.addValue("branchIds", branchIds);
 
         String query = "SELECT st.id as \"ID\", st.sale_number as \"Sale Number\", st.created_at as \"Date\", " +
                 "d.brand as \"Brand\", d.model as \"Model\", st.sale_status as \"Status\", " +
@@ -288,13 +288,13 @@ public class ReportRepository {
         exportService.exportToCsv(query, params, response, "sales_report");
     }
 
-    public void streamPurchaseDetailedReport(UUID branchId, ZonedDateTime start, ZonedDateTime end, com.buysell.modules.reports.service.ReportExportService exportService, jakarta.servlet.http.HttpServletResponse response) {
+    public void streamPurchaseDetailedReport(java.util.List<UUID> branchIds, ZonedDateTime start, ZonedDateTime end, com.buysell.modules.reports.service.ReportExportService exportService, jakarta.servlet.http.HttpServletResponse response) {
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("start", start.toOffsetDateTime())
                 .addValue("end", end.toOffsetDateTime());
 
-        String branchFilter = branchId != null ? " AND pt.branch_id = :branchId " : "";
-        if (branchId != null) params.addValue("branchId", branchId);
+        String branchFilter = branchIds != null ? " AND pt.branch_id IN (:branchIds) " : "";
+        if (branchIds != null && !branchIds.isEmpty()) params.addValue("branchIds", branchIds);
 
         String query = "SELECT pt.id as \"ID\", pt.purchase_number as \"Purchase Number\", pt.created_at as \"Date\", " +
                 "d.brand as \"Brand\", d.model as \"Model\", pt.transaction_status as \"Status\", " +
@@ -307,11 +307,11 @@ public class ReportRepository {
         exportService.exportToCsv(query, params, response, "purchase_report");
     }
 
-    public void streamInventoryDetailedReport(UUID branchId, com.buysell.modules.reports.service.ReportExportService exportService, jakarta.servlet.http.HttpServletResponse response) {
+    public void streamInventoryDetailedReport(java.util.List<UUID> branchIds, com.buysell.modules.reports.service.ReportExportService exportService, jakarta.servlet.http.HttpServletResponse response) {
         MapSqlParameterSource params = new MapSqlParameterSource();
 
-        String branchFilter = branchId != null ? " AND ii.branch_id = :branchId " : "";
-        if (branchId != null) params.addValue("branchId", branchId);
+        String branchFilter = branchIds != null ? " AND ii.branch_id IN (:branchIds) " : "";
+        if (branchIds != null && !branchIds.isEmpty()) params.addValue("branchIds", branchIds);
 
         String query = "SELECT ii.id as \"ID\", ii.stock_code as \"Stock Code\", ii.created_at as \"Date\", " +
                 "d.brand as \"Brand\", d.model as \"Model\", ii.status as \"Status\", " +
@@ -324,14 +324,14 @@ public class ReportRepository {
         exportService.exportToCsv(query, params, response, "inventory_report");
     }
 
-    public java.util.List<EmployeePerformanceResponse> getEmployeeReport(UUID branchId, ZonedDateTime start, ZonedDateTime end) {
+    public java.util.List<EmployeePerformanceResponse> getEmployeeReport(java.util.List<UUID> branchIds, ZonedDateTime start, ZonedDateTime end) {
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("start", start.toOffsetDateTime())
                 .addValue("end", end.toOffsetDateTime());
 
-        String branchFilterS = branchId != null ? " AND st.branch_id = :branchId " : "";
-        String branchFilterP = branchId != null ? " AND pt.branch_id = :branchId " : "";
-        if (branchId != null) params.addValue("branchId", branchId);
+        String branchFilterS = branchIds != null ? " AND st.branch_id IN (:branchIds) " : "";
+        String branchFilterP = branchIds != null ? " AND pt.branch_id IN (:branchIds) " : "";
+        if (branchIds != null && !branchIds.isEmpty()) params.addValue("branchIds", branchIds);
 
         String sql = "SELECT e.first_name || ' ' || e.last_name as employee, " +
                 "COALESCE(p.purchase_count, 0) as purchase_count, " +

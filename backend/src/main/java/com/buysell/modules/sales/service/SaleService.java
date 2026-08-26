@@ -81,7 +81,7 @@ public class SaleService {
         Customer customer = customerRepository.findById(request.getCustomerId())
                 .orElseThrow(() -> new BusinessException("CUSTOMER_NOT_FOUND", "Customer not found", HttpStatus.NOT_FOUND));
 
-        if (!currentUserService.isSuperAdmin() && !customer.getBranch().getId().equals(currentUserService.getCurrentBranch().getId())) {
+        if (!currentUserService.hasAccessToBranch(customer.getBranch())) {
             throw new BusinessException("CUSTOMER_ACCESS_DENIED", "Access to this customer is denied", HttpStatus.FORBIDDEN);
         }
 
@@ -94,7 +94,7 @@ public class SaleService {
         InventoryItem inventory = inventoryItemRepository.findByIdWithLock(request.getInventoryItemId())
                 .orElseThrow(() -> new BusinessException("INVENTORY_NOT_FOUND", "Inventory not found", HttpStatus.NOT_FOUND));
 
-        if (!currentUserService.isSuperAdmin() && !inventory.getBranch().getId().equals(currentUserService.getCurrentBranch().getId())) {
+        if (!currentUserService.hasAccessToBranch(inventory.getBranch())) {
             throw new BusinessException("SALE_BRANCH_ACCESS_DENIED", "Access to this inventory is denied", HttpStatus.FORBIDDEN);
         }
 

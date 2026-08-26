@@ -4,6 +4,10 @@ import com.buysell.modules.user.entity.Role;
 import com.buysell.modules.user.entity.User;
 import com.buysell.modules.user.repository.RoleRepository;
 import com.buysell.modules.user.repository.UserRepository;
+import com.buysell.modules.shop.entity.ShopMembership;
+import com.buysell.modules.shop.entity.ShopMembershipRole;
+import com.buysell.modules.shop.repository.ShopRepository;
+import com.buysell.modules.shop.repository.ShopMembershipRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -24,6 +28,8 @@ public class AdminBootstrapService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ShopRepository shopRepository;
+    private final ShopMembershipRepository shopMembershipRepository;
 
     @Value("${app.admin.initial-password}")
     private String initialAdminPassword;
@@ -45,6 +51,20 @@ public class AdminBootstrapService {
                         .build();
                         
                 userRepository.save(admin);
+                
+                // Assign to main shop
+                shopRepository.findByShopCode("MAIN-001").ifPresent(shop -> {
+                    shop.setOwner(admin);
+                    shopRepository.save(shop);
+                    
+                    ShopMembership membership = ShopMembership.builder()
+                            .shop(shop)
+                            .user(admin)
+                            .role(ShopMembershipRole.OWNER)
+                            .build();
+                    shopMembershipRepository.save(membership);
+                });
+                
                 logger.info("SUPER_ADMIN user 'admin' created successfully.");
             } else {
                 logger.warn("SUPER_ADMIN role not found. Make sure Flyway migrations are run.");

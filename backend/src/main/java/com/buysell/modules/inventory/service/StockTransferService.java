@@ -58,6 +58,7 @@ public class StockTransferService {
                 .fromBranch(fromBranch)
                 .toBranch(toBranch)
                 .status(TransferStatus.DRAFT)
+                .transferType(com.buysell.modules.inventory.entity.StockTransferType.INTERNAL)
                 .notes(request.getNotes())
                 .createdBy(currentUserService.getCurrentUser())
                 .build();
@@ -111,6 +112,11 @@ public class StockTransferService {
 
         transfer.setStatus(newStatus);
         
+        // Ensure only fromBranch can approve and only toBranch can complete, etc.
+        if (newStatus == TransferStatus.APPROVED && !currentUserService.hasAccessToBranch(transfer.getFromBranch())) {
+             throw new BusinessException("STOCK_TRANSFER_ACCESS_DENIED", "Only source branch can approve transfers.", HttpStatus.FORBIDDEN);
+        }
+        
         switch (newStatus) {
             case REQUESTED -> {
                 transfer.setRequestedAt(ZonedDateTime.now());
@@ -118,7 +124,7 @@ public class StockTransferService {
             }
             case APPROVED -> {
                 // Need permission
-                if (!currentUserService.hasPermission("APPROVE_STOCK_TRANSFER")) {
+                if (!currentUserService.hasPermission("APPROVE_STOCK_TRANSFER") && !currentUserService.hasAccessToBranch(transfer.getFromBranch())) {
                     throw new BusinessException("ACCESS_DENIED", "You do not have permission to approve stock transfers.", HttpStatus.FORBIDDEN);
                 }
                 transfer.setApprovedAt(ZonedDateTime.now());
@@ -179,8 +185,8 @@ public class StockTransferService {
         }
 
         // Verify user belongs to destination branch or is SUPER_ADMIN
-        if (!currentUserService.hasPermission("SUPER_ADMIN") && 
-            !currentUserService.getCurrentBranch().getId().equals(transfer.getToBranch().getId())) {
+        if (!currentUserService.isSuperAdmin() && 
+            !currentUserService.hasAccessToBranch(transfer.getToBranch())) {
             throw new BusinessException("INVENTORY_BRANCH_ACCESS_DENIED", "Only destination branch can complete the transfer.", HttpStatus.FORBIDDEN);
         }
 
@@ -243,10 +249,9 @@ public class StockTransferService {
                 .orElseThrow(() -> new BusinessException("STOCK_TRANSFER_NOT_FOUND", "Transfer not found.", HttpStatus.NOT_FOUND));
         
         // Ensure access to either from or to branch
-        UUID userBranch = currentUserService.getCurrentBranch().getId();
-        if (!currentUserService.hasPermission("SUPER_ADMIN") &&
-            !transfer.getFromBranch().getId().equals(userBranch) &&
-            !transfer.getToBranch().getId().equals(userBranch)) {
+        if (!currentUserService.isSuperAdmin() &&
+            !currentUserService.hasAccessToBranch(transfer.getFromBranch()) &&
+            !currentUserService.hasAccessToBranch(transfer.getToBranch())) {
             throw new BusinessException("INVENTORY_BRANCH_ACCESS_DENIED", "Access denied.", HttpStatus.FORBIDDEN);
         }
         
@@ -274,5 +279,60 @@ public class StockTransferService {
                         .stockCode(i.getInventoryItem().getStockCode())
                         .build()).collect(Collectors.toList()))
                 .build();
+    }
+
+    @Transactional
+    public StockTransferResponse requestNetworkTransfer(UUID inventoryItemId, String notes) {
+        Branch toBranch = currentUserService.getCurrentBranch();
+        if (toBranch == null) {
+            throw new BusinessException("BRANCH_REQUIRED", "You must belong to a branch to request network inventory.", HttpStatus.BAD_REQUEST);
+        }
+
+        InventoryItem item = inventoryItemRepository.findByIdWithLock(inventoryItemId)
+                .orElseThrow(() -> new BusinessException("INVENTORY_NOT_FOUND", "Item not found.", HttpStatus.NOT_FOUND));
+
+        if (item.getVisibility() != com.buysell.modules.inventory.entity.InventoryVisibility.SHOP_NETWORK) {
+            throw new BusinessException("INVENTORY_NOT_NETWORK_VISIBLE", "This item is not available in the network.", HttpStatus.BAD_REQUEST);
+        }
+
+        if (item.getStatus() != InventoryStatus.AVAILABLE) {
+            throw new BusinessException("INVENTORY_NOT_AVAILABLE", "Item is not AVAILABLE.", HttpStatus.BAD_REQUEST);
+        }
+
+        if (item.getBranch().getShop().getId().equals(toBranch.getShop().getId())) {
+            throw new BusinessException("STOCK_TRANSFER_INVALID", "Use internal transfer for items within your own shop.", HttpStatus.BAD_REQUEST);
+        }
+
+        if (transferItemRepository.existsByInventoryItemIdAndStockTransferStatusIn(
+                inventoryItemId, Arrays.asList(TransferStatus.DRAFT, TransferStatus.REQUESTED, TransferStatus.APPROVED, TransferStatus.IN_TRANSIT))) {
+            throw new BusinessException("INVENTORY_TRANSFER_NOT_ALLOWED", "Item is already in an active transfer.", HttpStatus.BAD_REQUEST);
+        }
+
+        String transferNumber = generateTransferNumber();
+
+        StockTransfer transfer = StockTransfer.builder()
+                .transferNumber(transferNumber)
+                .fromBranch(item.getBranch())
+                .toBranch(toBranch)
+                .status(TransferStatus.REQUESTED)
+                .transferType(com.buysell.modules.inventory.entity.StockTransferType.NETWORK)
+                .notes(notes)
+                .createdBy(currentUserService.getCurrentUser())
+                .requestedBy(currentUserService.getCurrentUser())
+                .requestedAt(ZonedDateTime.now())
+                .build();
+
+        StockTransferItem transferItem = StockTransferItem.builder()
+                .inventoryItem(item)
+                .build();
+        transfer.addItem(transferItem);
+
+        transfer = transferRepository.save(transfer);
+
+        auditService.logAction(currentUserService.getCurrentUserId(), toBranch.getId(),
+                "NETWORK_STOCK_TRANSFER_REQUESTED", "StockTransfer", transfer.getId(),
+                null, null, null, "Network stock transfer " + transferNumber + " requested.");
+
+        return mapToResponse(transfer);
     }
 }

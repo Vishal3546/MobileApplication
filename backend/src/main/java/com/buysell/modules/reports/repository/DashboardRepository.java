@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Repository
@@ -16,7 +17,7 @@ public class DashboardRepository {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    public DashboardSummaryResponse getDashboardSummary(UUID branchId, ZonedDateTime currentStart, ZonedDateTime currentEnd, ZonedDateTime previousStart, ZonedDateTime previousEnd) {
+    public DashboardSummaryResponse getDashboardSummary(List<UUID> branchIds, ZonedDateTime currentStart, ZonedDateTime currentEnd, ZonedDateTime previousStart, ZonedDateTime previousEnd) {
         
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("currentStart", currentStart.toOffsetDateTime())
@@ -30,13 +31,13 @@ public class DashboardRepository {
         String branchFilterCustomers = "";
         String branchFilterKyc = "";
 
-        if (branchId != null) {
-            params.addValue("branchId", branchId);
-            branchFilterSales = " AND branch_id = :branchId ";
-            branchFilterPurchases = " AND branch_id = :branchId ";
-            branchFilterInventory = " AND branch_id = :branchId ";
-            branchFilterCustomers = " AND branch_id = :branchId ";
-            branchFilterKyc = " AND c.branch_id = :branchId ";
+        if (branchIds != null && !branchIds.isEmpty()) {
+            params.addValue("branchIds", branchIds);
+            branchFilterSales = " AND branch_id IN (:branchIds) ";
+            branchFilterPurchases = " AND branch_id IN (:branchIds) ";
+            branchFilterInventory = " AND branch_id IN (:branchIds) ";
+            branchFilterCustomers = " AND branch_id IN (:branchIds) ";
+            branchFilterKyc = " AND c.branch_id IN (:branchIds) ";
         }
 
         // 1. Current Period Sales & Profit

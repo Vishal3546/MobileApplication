@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -23,7 +24,7 @@ public class DashboardService {
     @Cacheable(value = "dashboard", key = "@reportSecurityService.buildSecureCacheKey('summary', #requestedBranchId, #dateRangeStr)")
     public DashboardSummaryResponse getDashboardSummary(UUID requestedBranchId, String dateRangeStr, String customStart, String customEnd) {
         
-        UUID branchId = securityService.resolveBranchScope(requestedBranchId);
+        List<UUID> branchIds = securityService.resolveBranchScope(requestedBranchId);
         
         BusinessDateTimeService.DateRange currentRange = dateTimeService.resolveDateRange(dateRangeStr, customStart, customEnd);
         
@@ -33,7 +34,7 @@ public class DashboardService {
         ZonedDateTime previousEnd = currentRange.start; // The start of current is the end of previous
         
         return dashboardRepository.getDashboardSummary(
-                branchId, 
+                branchIds, 
                 currentRange.start, 
                 currentRange.end, 
                 previousStart, 

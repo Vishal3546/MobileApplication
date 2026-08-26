@@ -25,6 +25,12 @@ public class StockTransferController {
         return ResponseEntity.ok(transferService.createTransfer(request));
     }
 
+    @PostMapping("/network-request")
+    @PreAuthorize("hasAuthority('CREATE_STOCK_TRANSFER')")
+    public ResponseEntity<StockTransferResponse> requestNetworkTransfer(@RequestParam UUID inventoryItemId, @RequestParam(required = false) String notes) {
+        return ResponseEntity.ok(transferService.requestNetworkTransfer(inventoryItemId, notes));
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('VIEW_STOCK_TRANSFER')")
     public ResponseEntity<StockTransferResponse> getTransferById(@PathVariable UUID id) {

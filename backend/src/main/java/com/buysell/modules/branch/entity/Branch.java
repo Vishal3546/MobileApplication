@@ -3,6 +3,9 @@ package com.buysell.modules.branch.entity;
 import com.buysell.common.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,6 +25,10 @@ public class Branch extends BaseEntity {
 
     @Column(nullable = false, unique = true, length = 100)
     private String name;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "shop_id", nullable = false)
+    private com.buysell.modules.shop.entity.Shop shop;
 
     @Column(columnDefinition = "TEXT")
     private String address;
