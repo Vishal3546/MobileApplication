@@ -41,13 +41,13 @@ class TokenRefreshAuthenticator(
 
                 try {
                     val refreshResponse = authApi.get().refresh(RefreshTokenRequest(refreshToken))
-                    if (refreshResponse.isSuccessful && refreshResponse.body() != null) {
-                        val body = refreshResponse.body()!!
-                        tokenStorage.saveAccessToken(body.accessToken)
-                        tokenStorage.saveRefreshToken(body.refreshToken)
+                    if (refreshResponse.isSuccessful && refreshResponse.body()?.data != null) {
+                        val data = refreshResponse.body()!!.data!!
+                        tokenStorage.saveAccessToken(data.accessToken)
+                        tokenStorage.saveRefreshToken(data.refreshToken)
 
                         response.request.newBuilder()
-                            .header("Authorization", "Bearer ${body.accessToken}")
+                            .header("Authorization", "Bearer ${data.accessToken}")
                             .build()
                     } else {
                         // Refresh failed (e.g. refresh token expired)

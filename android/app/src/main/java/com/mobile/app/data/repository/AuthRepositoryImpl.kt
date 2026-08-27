@@ -17,17 +17,16 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun login(username: String, password: String): NetworkState<CurrentUser> {
         return try {
             val response = authApi.login(LoginRequest(username, password))
-            if (response.isSuccessful && response.body() != null) {
-                val body = response.body()!!
-                tokenStorage.saveAccessToken(body.accessToken)
-                tokenStorage.saveRefreshToken(body.refreshToken)
+            if (response.isSuccessful && response.body()?.data != null) {
+                val data = response.body()!!.data!!
+                tokenStorage.saveAccessToken(data.accessToken)
+                tokenStorage.saveRefreshToken(data.refreshToken)
                 
-                val user = body.user
                 val currentUser = CurrentUser(
-                    id = user?.id ?: "",
-                    username = user?.username ?: username,
-                    roles = user?.roles ?: emptyList(),
-                    permissions = user?.permissions ?: emptyList()
+                    id = data.id ?: "",
+                    username = data.username ?: username,
+                    roles = data.roles ?: emptyList(),
+                    permissions = data.permissions ?: emptyList()
                 )
                 NetworkState.Success(currentUser)
             } else {
