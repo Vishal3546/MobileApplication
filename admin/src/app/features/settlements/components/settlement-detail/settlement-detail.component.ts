@@ -3,13 +3,20 @@ import { ActivatedRoute } from '@angular/router';
 import { SettlementService, ShopSettlement } from '../../services/settlement.service';
 import { PermissionService } from '../../../../core/auth/permission.service';
 
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { SettlementPaymentComponent } from '../settlement-payment/settlement-payment.component';
+import { SettlementDisputeComponent } from '../settlement-dispute/settlement-dispute.component';
+
 @Component({
   selector: 'app-settlement-detail',
+  standalone: true,
+  imports: [CommonModule, RouterModule, SettlementPaymentComponent, SettlementDisputeComponent],
   templateUrl: './settlement-detail.component.html',
   styleUrls: ['./settlement-detail.component.scss']
 })
 export class SettlementDetailComponent implements OnInit {
-  settlement: ShopSettlement | null = null;
+  settlement!: ShopSettlement;
   loading = true;
   id: string = '';
 

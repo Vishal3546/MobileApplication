@@ -8,6 +8,7 @@ import com.buysell.modules.inventory.repository.StockTransferRepository;
 import com.buysell.modules.settlement.entity.ShopSettlement;
 import com.buysell.modules.settlement.repository.ShopSettlementRepository;
 import com.buysell.modules.settlement.service.SettlementService;
+import com.buysell.modules.audit.service.AuditService;
 import com.buysell.modules.branch.entity.Branch;
 import com.buysell.modules.shop.entity.Shop;
 
@@ -35,6 +36,9 @@ public class SettlementServiceTest {
 
     @Mock
     private StockTransferRepository transferRepository;
+
+    @Mock
+    private AuditService auditService;
 
     @InjectMocks
     private SettlementService settlementService;

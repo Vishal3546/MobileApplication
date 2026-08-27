@@ -9,6 +9,7 @@ import com.buysell.modules.settlement.enums.SettlementStatus;
 import com.buysell.modules.settlement.repository.SettlementPaymentRepository;
 import com.buysell.modules.settlement.repository.ShopSettlementRepository;
 import com.buysell.modules.settlement.service.SettlementPaymentService;
+import com.buysell.modules.audit.service.AuditService;
 import com.buysell.modules.shop.entity.Shop;
 import com.buysell.security.CurrentUserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,6 +38,9 @@ public class SettlementPaymentServiceTest {
 
     @Mock
     private CurrentUserService currentUserService;
+
+    @Mock
+    private AuditService auditService;
 
     @InjectMocks
     private SettlementPaymentService paymentService;

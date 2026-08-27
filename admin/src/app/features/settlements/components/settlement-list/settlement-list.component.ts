@@ -2,8 +2,19 @@ import { Component, OnInit } from '@angular/core';
 import { SettlementService } from '../../services/settlement.service';
 import { PermissionService } from '../../../../core/auth/permission.service';
 
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { MatTableModule } from '@angular/material/table';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatButtonModule } from '@angular/material/button';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatCardModule } from '@angular/material/card';
+
 @Component({
   selector: 'app-settlement-list',
+  standalone: true,
+  imports: [CommonModule, RouterModule, MatTableModule, MatPaginatorModule, MatButtonModule, MatInputModule, MatSelectModule, MatCardModule],
   templateUrl: './settlement-list.component.html',
   styleUrls: ['./settlement-list.component.scss']
 })

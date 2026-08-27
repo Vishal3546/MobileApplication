@@ -2,6 +2,7 @@ package com.mobile.app.core.network
 
 import com.mobile.app.core.security.TokenStorage
 import com.mobile.app.data.remote.AuthApi
+import com.mobile.app.data.remote.dto.ApiResponseDto
 import com.mobile.app.data.remote.dto.RefreshTokenResponse
 import dagger.Lazy
 import io.mockk.coEvery
@@ -48,7 +49,7 @@ class TokenRefreshAuthenticatorTest {
         // Mock slow API call to allow concurrent requests to queue up
         coEvery { authApi.refresh(any()) } coAnswers {
             delay(100) // Simulating network delay
-            RetrofitResponse.success(RefreshTokenResponse("new_token", "new_refresh"))
+            RetrofitResponse.success(ApiResponseDto(true, "Success", RefreshTokenResponse("new_token", "new_refresh")))
         }
 
         // Simulate 3 concurrent requests hitting the authenticator
@@ -74,7 +75,7 @@ class TokenRefreshAuthenticatorTest {
 
         // Mock API failure
         coEvery { authApi.refresh(any()) } coAnswers {
-            RetrofitResponse.error<RefreshTokenResponse>(400, okhttp3.ResponseBody.create(null, ""))
+            RetrofitResponse.error<ApiResponseDto<RefreshTokenResponse>>(400, okhttp3.ResponseBody.create(null, ""))
         }
 
         // Simulate 3 concurrent requests hitting the authenticator
