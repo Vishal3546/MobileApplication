@@ -15,13 +15,6 @@ import { SettlementSummaryComponent } from './components/settlement-summary/sett
 import { SettlementDisputeComponent } from './components/settlement-dispute/settlement-dispute.component';
 
 @NgModule({
-  declarations: [
-    SettlementListComponent,
-    SettlementDetailComponent,
-    SettlementPaymentComponent,
-    SettlementSummaryComponent,
-    SettlementDisputeComponent
-  ],
   imports: [
     CommonModule,
     SettlementsRoutingModule,
@@ -32,7 +25,12 @@ import { SettlementDisputeComponent } from './components/settlement-dispute/sett
     MatButtonModule,
     MatInputModule,
     MatSelectModule,
-    MatCardModule
+    MatCardModule,
+    SettlementListComponent,
+    SettlementDetailComponent,
+    SettlementPaymentComponent,
+    SettlementSummaryComponent,
+    SettlementDisputeComponent
   ]
 })
 export class SettlementsModule { }
