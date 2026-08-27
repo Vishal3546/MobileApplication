@@ -66,7 +66,7 @@ fun DeviceMediaScreen(
                     showCamera = false
                     viewModel.uploadMedia(deviceId, selectedType, file)
                 },
-                onError = { Log.e("Camera", "Capture error", it) },
+                onError = { /* Log omitted for security */ },
                 onCancel = { showCamera = false }
             )
         } else {
@@ -189,7 +189,7 @@ fun CameraView(
                                 imageCapture
                             )
                         } catch (exc: Exception) {
-                            Log.e("Camera", "Use case binding failed", exc)
+                            // Log omitted for security
                         }
                     }, executor)
                     previewView

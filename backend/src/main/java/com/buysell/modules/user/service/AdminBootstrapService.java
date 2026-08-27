@@ -1,26 +1,26 @@
 package com.buysell.modules.user.service;
 
-import com.buysell.modules.user.entity.Role;
-import com.buysell.modules.user.entity.User;
-import com.buysell.modules.user.repository.RoleRepository;
-import com.buysell.modules.user.repository.UserRepository;
-import com.buysell.modules.shop.entity.ShopMembership;
-import com.buysell.modules.shop.entity.ShopMembershipRole;
-import com.buysell.modules.shop.repository.ShopRepository;
-import com.buysell.modules.shop.repository.ShopMembershipRepository;
-import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
+import java.util.Optional;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-import java.util.Set;
+import com.buysell.modules.shop.entity.ShopMembership;
+import com.buysell.modules.shop.entity.ShopMembershipRole;
+import com.buysell.modules.shop.repository.ShopMembershipRepository;
+import com.buysell.modules.shop.repository.ShopRepository;
+import com.buysell.modules.user.entity.Role;
+import com.buysell.modules.user.entity.User;
+import com.buysell.modules.user.repository.RoleRepository;
+import com.buysell.modules.user.repository.UserRepository;
+
+import jakarta.annotation.PostConstruct;
 
 @Service
-@RequiredArgsConstructor
 public class AdminBootstrapService {
 
     private static final Logger logger = LoggerFactory.getLogger(AdminBootstrapService.class);
@@ -33,6 +33,14 @@ public class AdminBootstrapService {
 
     @Value("${app.admin.initial-password}")
     private String initialAdminPassword;
+
+    public AdminBootstrapService(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder, ShopRepository shopRepository, ShopMembershipRepository shopMembershipRepository) {
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.shopRepository = shopRepository;
+        this.shopMembershipRepository = shopMembershipRepository;
+    }
 
     @PostConstruct
     public void bootstrapSuperAdmin() {

@@ -42,6 +42,10 @@ export const routes: Routes = [
       { 
         path: 'sales', 
         loadComponent: () => import('./features/sales/sales-list').then(m => m.SalesListComponent) 
+      },
+      {
+        path: 'settlements',
+        loadChildren: () => import('./features/settlements/settlements.module').then(m => m.SettlementsModule)
       }
     ]
   },

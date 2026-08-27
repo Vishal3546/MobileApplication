@@ -79,8 +79,8 @@ public class SaleServiceTest {
         req.setTaxAmount(BigDecimal.ZERO);
 
         when(currentUserService.hasPermission("CREATE_SALE")).thenReturn(true);
+        when(currentUserService.hasAccessToBranch(any())).thenReturn(true);
         when(customerRepository.findById(customer.getId())).thenReturn(Optional.of(customer));
-        when(currentUserService.isSuperAdmin()).thenReturn(true);
         when(inventoryItemRepository.findByIdWithLock(inventory.getId())).thenReturn(Optional.of(inventory));
         when(salePricingService.calculateFinalAmount(any(), any(), any())).thenReturn(new BigDecimal("100"));
         when(saleTransactionRepository.generateSaleNumber()).thenReturn("SALE-001");

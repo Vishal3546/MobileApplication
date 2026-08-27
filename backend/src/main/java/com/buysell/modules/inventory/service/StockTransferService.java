@@ -15,9 +15,10 @@ import com.buysell.modules.inventory.repository.StockTransferItemRepository;
 import com.buysell.modules.inventory.repository.StockTransferRepository;
 import com.buysell.modules.user.entity.User;
 import com.buysell.security.CurrentUserService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.context.ApplicationEventPublisher;
+import com.buysell.modules.inventory.event.StockTransferCompletedEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,16 +30,25 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class StockTransferService {
 
-    private final StockTransferRepository transferRepository;
-    private final StockTransferItemRepository transferItemRepository;
-    private final InventoryItemRepository inventoryItemRepository;
-    private final InventoryService inventoryService;
-    private final BranchRepository branchRepository;
-    private final CurrentUserService currentUserService;
-    private final AuditService auditService;
+    @org.springframework.beans.factory.annotation.Autowired
+
+    private StockTransferRepository transferRepository;
+    @org.springframework.beans.factory.annotation.Autowired
+    private StockTransferItemRepository transferItemRepository;
+    @org.springframework.beans.factory.annotation.Autowired
+    private InventoryItemRepository inventoryItemRepository;
+    @org.springframework.beans.factory.annotation.Autowired
+    private InventoryService inventoryService;
+    @org.springframework.beans.factory.annotation.Autowired
+    private BranchRepository branchRepository;
+    @org.springframework.beans.factory.annotation.Autowired
+    private CurrentUserService currentUserService;
+    @org.springframework.beans.factory.annotation.Autowired
+    private AuditService auditService;
+    @org.springframework.beans.factory.annotation.Autowired
+    private ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public StockTransferResponse createTransfer(StockTransferRequest request) {
@@ -224,6 +234,11 @@ public class StockTransferService {
         auditService.logAction(currentUserService.getCurrentUserId(), transfer.getToBranch().getId(),
                 "STOCK_TRANSFER_COMPLETED", "StockTransfer", transfer.getId(),
                 null, null, null, "Stock transfer completed.");
+
+        // Create settlement for NETWORK transfers
+        if (transfer.getTransferType() == com.buysell.modules.inventory.entity.StockTransferType.NETWORK) {
+            eventPublisher.publishEvent(new StockTransferCompletedEvent(this, transfer.getId()));
+        }
 
         return mapToResponse(transfer);
     }

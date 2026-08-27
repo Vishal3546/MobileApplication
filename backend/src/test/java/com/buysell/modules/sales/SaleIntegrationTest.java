@@ -76,14 +76,22 @@ public class SaleIntegrationTest {
     @MockBean
     private CurrentUserService currentUserService;
 
+    @Autowired
+    private com.buysell.modules.shop.repository.ShopRepository shopRepository;
+
     private User admin;
     private Branch branch;
     private Customer customer;
     private InventoryItem inventory;
+    private com.buysell.modules.shop.entity.Shop mainShop;
 
     @BeforeEach
     public void setUp() {
-        branch = branchRepository.save(Branch.builder().name("Branch 1 " + UUID.randomUUID()).isActive(true).build());
+        mainShop = shopRepository.findByShopCode("MAIN-001").orElseGet(() -> 
+            shopRepository.save(com.buysell.modules.shop.entity.Shop.builder().shopCode("MAIN-001").name("Main Shop").status(com.buysell.modules.shop.entity.ShopStatus.ACTIVE).build())
+        );
+
+        branch = branchRepository.save(Branch.builder().name("Branch 1 " + UUID.randomUUID()).shop(mainShop).isActive(true).build());
         admin = userRepository.save(User.builder().username("admin_" + UUID.randomUUID()).passwordHash("hash").isActive(true).build());
         customer = customerRepository.save(Customer.builder().firstName("Test").lastName("Customer").phone("123456" + UUID.randomUUID().toString().substring(0,5)).branch(branch).status(CustomerStatus.ACTIVE).build());
 
@@ -101,6 +109,7 @@ public class SaleIntegrationTest {
         when(currentUserService.getCurrentBranch()).thenReturn(branch);
         when(currentUserService.hasPermission(any())).thenReturn(true);
         when(currentUserService.isSuperAdmin()).thenReturn(true);
+        when(currentUserService.hasAccessToBranch(any())).thenReturn(true);
     }
 
     @Test
@@ -188,9 +197,10 @@ public class SaleIntegrationTest {
 
     @Test
     void testBranchIsolation() {
-        Branch otherBranch = branchRepository.save(Branch.builder().name("Other Branch " + UUID.randomUUID()).isActive(true).build());
+        Branch otherBranch = branchRepository.save(Branch.builder().name("Other Branch " + UUID.randomUUID()).shop(mainShop).isActive(true).build());
         when(currentUserService.getCurrentBranch()).thenReturn(otherBranch);
         when(currentUserService.isSuperAdmin()).thenReturn(false); // Simulate non-admin
+        when(currentUserService.hasAccessToBranch(any())).thenReturn(false);
 
         CreateSaleRequest saleReq = new CreateSaleRequest();
         saleReq.setCustomerId(customer.getId()); // customer is in branch 1

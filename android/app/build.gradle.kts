@@ -16,7 +16,7 @@ android {
         versionCode = 1
         versionName = "1.0"
         
-        buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080/\"")
+        buildConfigField("String", "API_BASE_URL", "\"https://mobileapplication-qtau.onrender.com/\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -26,7 +26,7 @@ android {
 
     buildTypes {
         release {
-            buildConfigField("String", "API_BASE_URL", "\"https://api.mobilebiz.com/\"")
+            buildConfigField("String", "API_BASE_URL", "\"https://mobileapplication-qtau.onrender.com/\"")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(

@@ -65,6 +65,9 @@ public class InventoryConcurrencyTest {
     private InventoryItemRepository inventoryItemRepository;
 
     @Autowired
+    private com.buysell.modules.shop.repository.ShopRepository shopRepository;
+
+    @Autowired
     private StockTransferRepository stockTransferRepository;
 
     @Autowired
@@ -90,6 +93,7 @@ public class InventoryConcurrencyTest {
     private User admin;
     private Device device;
     private PurchaseTransaction purchase;
+    private com.buysell.modules.shop.entity.Shop mainShop;
 
     @BeforeEach
     public void setUp() {
@@ -101,14 +105,19 @@ public class InventoryConcurrencyTest {
         branchRepository.deleteAll();
         userRepository.deleteAll();
 
-        branch1 = branchRepository.save(Branch.builder().name("Branch 1 " + java.util.UUID.randomUUID().toString()).isActive(true).build());
-        branch2 = branchRepository.save(Branch.builder().name("Branch 2 " + java.util.UUID.randomUUID().toString()).isActive(true).build());
+        mainShop = shopRepository.findByShopCode("MAIN-001").orElseGet(() -> 
+            shopRepository.save(com.buysell.modules.shop.entity.Shop.builder().shopCode("MAIN-001").name("Main Shop").status(com.buysell.modules.shop.entity.ShopStatus.ACTIVE).build())
+        );
+
+        branch1 = branchRepository.save(Branch.builder().name("Branch 1 " + java.util.UUID.randomUUID().toString()).shop(mainShop).isActive(true).build());
+        branch2 = branchRepository.save(Branch.builder().name("Branch 2 " + java.util.UUID.randomUUID().toString()).shop(mainShop).isActive(true).build());
         admin = userRepository.save(User.builder().username("test_admin_" + java.util.UUID.randomUUID().toString()).passwordHash("hash").isActive(true).build());
 
         when(currentUserService.getCurrentBranch()).thenReturn(branch1);
         when(currentUserService.getCurrentUser()).thenReturn(admin);
         when(currentUserService.getCurrentUserId()).thenReturn(admin.getId());
         when(currentUserService.hasPermission(any())).thenReturn(true);
+        when(currentUserService.hasAccessToBranch(any())).thenReturn(true);
 
         Customer customer = customerRepository.save(Customer.builder().firstName("Test").lastName("Customer").phone("123").branch(branch1).build());
         device = deviceRepository.save(Device.builder().imei1("123456789012345").brand("Apple").model("iPhone 13").build());

@@ -1,0 +1,21 @@
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8" *ngIf="summary">
+  <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500 hover:shadow-lg transition-shadow">
+    <div class="text-sm font-semibold text-gray-500 uppercase">Total Receivable</div>
+    <div class="text-3xl font-bold text-gray-900 mt-2">{{summary.totalReceivable | currency:'INR'}}</div>
+    <div class="text-sm text-green-600 mt-1">Owed to you</div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-red-500 hover:shadow-lg transition-shadow">
+    <div class="text-sm font-semibold text-gray-500 uppercase">Total Payable</div>
+    <div class="text-3xl font-bold text-gray-900 mt-2">{{summary.totalPayable | currency:'INR'}}</div>
+    <div class="text-sm text-red-600 mt-1">You owe</div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500 hover:shadow-lg transition-shadow">
+    <div class="text-sm font-semibold text-gray-500 uppercase">Net Balance</div>
+    <div class="text-3xl font-bold mt-2" [ngClass]="{'text-green-600': summary.netBalance >= 0, 'text-red-600': summary.netBalance < 0}">
+      {{summary.netBalance | currency:'INR'}}
+    </div>
+    <div class="text-sm text-gray-500 mt-1">Total settlement position</div>
+  </div>
+</div>

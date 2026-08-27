@@ -73,14 +73,22 @@ public class SaleConcurrencyTest {
     @MockBean
     private CurrentUserService currentUserService;
 
+    @Autowired
+    private com.buysell.modules.shop.repository.ShopRepository shopRepository;
+
     private User admin;
     private Branch branch;
     private Customer customer;
     private InventoryItem inventory;
+    private com.buysell.modules.shop.entity.Shop mainShop;
 
     @BeforeEach
     void setUp() {
-        branch = branchRepository.save(Branch.builder().name("Branch 1 " + UUID.randomUUID()).isActive(true).build());
+        mainShop = shopRepository.findByShopCode("MAIN-001").orElseGet(() -> 
+            shopRepository.save(com.buysell.modules.shop.entity.Shop.builder().shopCode("MAIN-001").name("Main Shop").status(com.buysell.modules.shop.entity.ShopStatus.ACTIVE).build())
+        );
+
+        branch = branchRepository.save(Branch.builder().name("Branch 1 " + UUID.randomUUID()).shop(mainShop).isActive(true).build());
         admin = userRepository.save(User.builder().username("admin_" + UUID.randomUUID()).passwordHash("hash").isActive(true).build());
         customer = customerRepository.save(Customer.builder().firstName("Test").lastName("Customer").phone("123456" + UUID.randomUUID().toString().substring(0,5)).branch(branch).status(CustomerStatus.ACTIVE).build());
 
@@ -98,6 +106,7 @@ public class SaleConcurrencyTest {
         when(currentUserService.getCurrentBranch()).thenReturn(branch);
         when(currentUserService.hasPermission(any())).thenReturn(true);
         when(currentUserService.isSuperAdmin()).thenReturn(true);
+        when(currentUserService.hasAccessToBranch(any())).thenReturn(true);
     }
 
     @Test
