@@ -67,7 +67,7 @@ public class InventoryService {
                     cb.like(cb.lower(root.join("device").get("brand")), searchPattern)
                 ));
             }
-            return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+            return cb.and(predicates.toArray(jakarta.persistence.criteria.Predicate[]::new));
         };
 
         return inventoryItemRepository.findAll(spec, pageable).map(this::mapToResponse);

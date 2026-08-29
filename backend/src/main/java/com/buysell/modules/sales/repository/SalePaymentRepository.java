@@ -14,4 +14,5 @@ import com.buysell.modules.sales.enums.PaymentStatus;
 public interface SalePaymentRepository extends JpaRepository<SalePayment, UUID> {
     Optional<SalePayment> findByIdempotencyKey(String idempotencyKey);
     List<SalePayment> findBySaleTransactionIdAndPaymentStatus(UUID saleTransactionId, PaymentStatus status);
+    List<SalePayment> findBySaleTransactionId(UUID saleTransactionId);
 }

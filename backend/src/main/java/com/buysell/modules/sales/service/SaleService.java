@@ -107,7 +107,7 @@ public class SaleService {
                     cb.like(cb.lower(root.join("customer").get("lastName")), searchPattern)
                 ));
             }
-            return cb.and(predicates.toArray(new Predicate[0]));
+            return cb.and(predicates.toArray(Predicate[]::new));
         };
 
         return saleTransactionRepository.findAll(spec, pageable).map(this::mapToResponse);
