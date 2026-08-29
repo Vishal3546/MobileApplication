@@ -12,8 +12,10 @@ import com.buysell.modules.sales.entity.SaleTransaction;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.Lock;
 
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+
 @Repository
-public interface SaleTransactionRepository extends JpaRepository<SaleTransaction, UUID> {
+public interface SaleTransactionRepository extends JpaRepository<SaleTransaction, UUID>, JpaSpecificationExecutor<SaleTransaction> {
     Optional<SaleTransaction> findBySaleNumber(String saleNumber);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

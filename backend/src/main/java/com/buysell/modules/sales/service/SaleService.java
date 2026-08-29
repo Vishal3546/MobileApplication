@@ -8,6 +8,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import jakarta.persistence.criteria.Predicate;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.buysell.exception.BusinessException;
 import com.buysell.modules.audit.service.AuditService;
@@ -69,6 +75,54 @@ public class SaleService {
         this.warrantyPolicyService = warrantyPolicyService;
         this.currentUserService = currentUserService;
         this.auditService = auditService;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<SaleTransactionResponse> getSales(String status, String paymentStatus, String search, Pageable pageable) {
+        if (!currentUserService.hasPermission("VIEW_SALES_REPORT") && !currentUserService.hasPermission("VIEW_SALES")) {
+            throw new BusinessException("AUTH_FORBIDDEN", "User does not have permission to view sales", HttpStatus.FORBIDDEN);
+        }
+
+        UUID branchId = currentUserService.getCurrentBranch().getId();
+
+        Specification<SaleTransaction> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cb.equal(root.get("branch").get("id"), branchId));
+            
+            if (status != null && !status.isEmpty()) {
+                try {
+                    predicates.add(cb.equal(root.get("status"), SaleStatus.valueOf(status.toUpperCase())));
+                } catch (IllegalArgumentException ignored) {}
+            }
+            if (paymentStatus != null && !paymentStatus.isEmpty()) {
+                try {
+                    predicates.add(cb.equal(root.get("paymentStatus"), PaymentStatus.valueOf(paymentStatus.toUpperCase())));
+                } catch (IllegalArgumentException ignored) {}
+            }
+            if (search != null && !search.trim().isEmpty()) {
+                String searchPattern = "%" + search.trim().toLowerCase() + "%";
+                predicates.add(cb.or(
+                    cb.like(cb.lower(root.get("saleNumber")), searchPattern),
+                    cb.like(cb.lower(root.join("customer").get("firstName")), searchPattern),
+                    cb.like(cb.lower(root.join("customer").get("lastName")), searchPattern)
+                ));
+            }
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        return saleTransactionRepository.findAll(spec, pageable).map(this::mapToResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public SaleTransactionResponse getSaleById(UUID id) {
+        SaleTransaction sale = saleTransactionRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("SALE_NOT_FOUND", "Sale not found", HttpStatus.NOT_FOUND));
+
+        if (!currentUserService.hasAccessToBranch(sale.getBranch())) {
+            throw new BusinessException("SALE_ACCESS_DENIED", "Access denied to this sale", HttpStatus.FORBIDDEN);
+        }
+
+        return mapToResponse(sale);
     }
 
     @Transactional

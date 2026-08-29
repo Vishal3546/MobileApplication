@@ -33,6 +33,10 @@ import com.mobile.app.presentation.purchase.create.CreatePurchaseScreen
 import com.mobile.app.presentation.purchase.detail.PurchaseDetailScreen
 import com.mobile.app.presentation.purchase.steps.PurchasePaymentScreen
 import com.mobile.app.core.security.PermissionManager
+import com.mobile.app.presentation.sales.list.SaleListScreen
+import com.mobile.app.presentation.inventory.list.InventoryListScreen
+import com.mobile.app.presentation.settlement.SettlementListScreen
+import com.mobile.app.presentation.network_inventory.NetworkInventoryScreen
 @Composable
 fun AppNavigation(
     authViewModel: AuthViewModel = hiltViewModel()
@@ -77,16 +81,14 @@ fun AppNavigation(
                         popUpTo(0) { inclusive = true } // clear back stack
                     }
                 },
-                // In a real app, DashboardScreen would have a button to navigate to customers
-                // We'll just pass a placeholder callback or let it be handled later.
-                // Assuming Dashboard has some way to navigate to customers:
-                // onNavigateToCustomers = { navController.navigate("customerList") }
+                onNavigateToSales = { navController.navigate("saleList") },
+                onNavigateToPurchases = { navController.navigate("purchaseList") },
+                onNavigateToInventory = { navController.navigate("inventoryList") },
+                onNavigateToCustomers = { navController.navigate("customerList") },
+                onNavigateToDevices = { navController.navigate("deviceList") },
+                onNavigateToNetworkInventory = { navController.navigate("networkInventory") },
+                onNavigateToSettlements = { navController.navigate("settlementList") }
             )
-            
-            // Temporary button on Dashboard for testing navigation to Customers
-            androidx.compose.material3.Button(onClick = { navController.navigate("customerList") }) {
-                androidx.compose.material3.Text("Go to Customers")
-            }
         }
 
         composable("customerList") {
@@ -253,6 +255,28 @@ fun AppNavigation(
                 purchaseId = id,
                 onNavigateBack = { navController.popBackStack() }
             )
+        }
+        
+        composable("saleList") {
+            SaleListScreen(
+                onNavigateToDetail = { id -> navController.navigate("saleDetail/$id") }, // Assuming detail route will be added later
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable("inventoryList") {
+            InventoryListScreen(
+                onNavigateToDetail = { id -> navController.navigate("inventoryDetail/$id") },
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable("networkInventory") {
+            NetworkInventoryScreen()
+        }
+
+        composable("settlementList") {
+            SettlementListScreen()
         }
     }
 }

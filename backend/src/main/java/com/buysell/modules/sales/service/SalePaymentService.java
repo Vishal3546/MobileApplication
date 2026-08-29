@@ -118,4 +118,17 @@ public class SalePaymentService {
         response.setCreatedAt(payment.getCreatedAt());
         return response;
     }
+    @Transactional(readOnly = true)
+    public List<SalePaymentResponse> getPaymentsForSale(UUID saleId) {
+        SaleTransaction sale = saleTransactionRepository.findById(saleId)
+                .orElseThrow(() -> new BusinessException("SALE_NOT_FOUND", "Sale not found", HttpStatus.NOT_FOUND));
+
+        if (!currentUserService.hasAccessToBranch(sale.getBranch())) {
+            throw new BusinessException("SALE_ACCESS_DENIED", "Access denied to this sale", HttpStatus.FORBIDDEN);
+        }
+
+        return salePaymentRepository.findBySaleTransactionId(saleId).stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
 }

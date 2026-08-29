@@ -47,6 +47,33 @@ public class InventoryService {
     }
 
     @Transactional(readOnly = true)
+    public Page<InventoryResponse> getInventoryList(String status, String search, Pageable pageable) {
+        UUID branchId = currentUserService.getCurrentBranch().getId();
+
+        Specification<InventoryItem> spec = (root, query, cb) -> {
+            java.util.List<jakarta.persistence.criteria.Predicate> predicates = new java.util.ArrayList<>();
+            predicates.add(cb.equal(root.get("branch").get("id"), branchId));
+            
+            if (status != null && !status.isEmpty()) {
+                try {
+                    predicates.add(cb.equal(root.get("status"), InventoryStatus.valueOf(status.toUpperCase())));
+                } catch (IllegalArgumentException ignored) {}
+            }
+            if (search != null && !search.trim().isEmpty()) {
+                String searchPattern = "%" + search.trim().toLowerCase() + "%";
+                predicates.add(cb.or(
+                    cb.like(cb.lower(root.get("stockCode")), searchPattern),
+                    cb.like(cb.lower(root.join("device").get("model")), searchPattern),
+                    cb.like(cb.lower(root.join("device").get("brand")), searchPattern)
+                ));
+            }
+            return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+        };
+
+        return inventoryItemRepository.findAll(spec, pageable).map(this::mapToResponse);
+    }
+
+    @Transactional(readOnly = true)
     public InventoryResponse getInventoryByStockCode(String stockCode) {
         InventoryItem item = inventoryItemRepository.findByStockCode(stockCode)
                 .orElseThrow(() -> new BusinessException("INVENTORY_NOT_FOUND", "Inventory not found.", HttpStatus.NOT_FOUND));
