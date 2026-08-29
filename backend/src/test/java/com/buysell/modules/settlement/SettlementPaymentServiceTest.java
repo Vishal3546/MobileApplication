@@ -39,6 +39,7 @@ public class SettlementPaymentServiceTest {
     @Mock
     private CurrentUserService currentUserService;
 
+    @SuppressWarnings("unused")
     @Mock
     private AuditService auditService;
 
@@ -83,6 +84,7 @@ public class SettlementPaymentServiceTest {
         assertEquals(SettlementStatus.PARTIALLY_PAID, settlement.getStatus());
         
         verify(settlementRepository).save(settlement);
+        verify(auditService).logAction(any(), any(), any(), any(), any(), any(), any(), any(), any());
     }
 
     @Test

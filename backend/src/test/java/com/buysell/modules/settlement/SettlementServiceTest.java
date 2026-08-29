@@ -37,6 +37,7 @@ public class SettlementServiceTest {
     @Mock
     private StockTransferRepository transferRepository;
 
+    @SuppressWarnings("unused")
     @Mock
     private AuditService auditService;
 
