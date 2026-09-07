@@ -73,15 +73,14 @@ class AuthViewModel @Inject constructor(
 
     fun isSuperAdmin(): Boolean {
         val token = tokenStorage.getAccessToken() ?: return false
-        try {
+        return try {
             val parts = token.split(".")
             if (parts.size == 3) {
                 val payload = String(android.util.Base64.decode(parts[1], android.util.Base64.URL_SAFE))
-                return payload.contains("\"ROLE_SUPER_ADMIN\"")
-            }
+                payload.contains("\"SUPER_ADMIN\"")
+            } else false
         } catch (e: Exception) {
-            // Ignore
+            false
         }
-        return false
     }
 }
