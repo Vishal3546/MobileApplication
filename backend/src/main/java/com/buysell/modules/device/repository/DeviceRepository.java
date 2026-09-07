@@ -32,9 +32,9 @@ public interface DeviceRepository extends JpaRepository<Device, UUID> {
     Optional<Device> findByImei(@Param("imei") String imei);
     
     @Query("SELECT d FROM Device d WHERE " +
-           "(:imei IS NULL OR d.imei1 LIKE %:imei% OR d.imei2 LIKE %:imei%) AND " +
-           "(:brand IS NULL OR LOWER(d.brand) LIKE LOWER(CONCAT('%', :brand, '%'))) AND " +
-           "(:model IS NULL OR LOWER(d.model) LIKE LOWER(CONCAT('%', :model, '%')))")
+           "(cast(:imei as text) IS NULL OR d.imei1 LIKE CONCAT('%', cast(:imei as text), '%') OR d.imei2 LIKE CONCAT('%', cast(:imei as text), '%')) AND " +
+           "(cast(:brand as text) IS NULL OR LOWER(d.brand) LIKE LOWER(CONCAT('%', cast(:brand as text), '%'))) AND " +
+           "(cast(:model as text) IS NULL OR LOWER(d.model) LIKE LOWER(CONCAT('%', cast(:model as text), '%')))")
     Page<Device> searchDevices(@Param("imei") String imei, 
                                @Param("brand") String brand, 
                                @Param("model") String model, 

@@ -15,10 +15,10 @@ public interface CustomerRepository extends JpaRepository<Customer, UUID> {
     
     @Query("SELECT c FROM Customer c WHERE " +
            "(:branchId IS NULL OR c.branch.id = :branchId) AND " +
-           "(:search IS NULL OR LOWER(c.firstName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-           "LOWER(c.lastName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-           "c.phone LIKE CONCAT('%', :search, '%') OR " +
-           "LOWER(c.email) LIKE LOWER(CONCAT('%', :search, '%')))")
+           "(cast(:search as text) IS NULL OR LOWER(c.firstName) LIKE LOWER(CONCAT('%', cast(:search as text), '%')) OR " +
+           "LOWER(c.lastName) LIKE LOWER(CONCAT('%', cast(:search as text), '%')) OR " +
+           "c.phone LIKE CONCAT('%', cast(:search as text), '%') OR " +
+           "LOWER(c.email) LIKE LOWER(CONCAT('%', cast(:search as text), '%')))")
     Page<Customer> searchCustomers(
             @Param("branchId") UUID branchId, 
             @Param("search") String search, 

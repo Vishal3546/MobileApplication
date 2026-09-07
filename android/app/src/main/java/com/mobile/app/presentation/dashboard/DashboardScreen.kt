@@ -17,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -24,6 +25,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.mobile.app.core.ui.components.AppTopBar
+import com.mobile.app.core.ui.components.GlassCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,23 +59,47 @@ fun DashboardScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // 1. Top Chips
+            // 1. Promotional / Stats Banner (Modern Hero Section)
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(
-                        selected = true,
-                        onClick = { },
-                        label = { Text("My Shop") },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .shadow(16.dp, RoundedCornerShape(24.dp), ambientColor = Color(0xFFE53935), spotColor = Color(0xFF8E24AA))
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(
+                            brush = Brush.linearGradient(
+                                colors = listOf(Color(0xFFFF416C), Color(0xFFFF4B2B))
+                            )
                         )
-                    )
-                    FilterChip(
-                        selected = false,
-                        onClick = { },
-                        label = { Text("Network") }
-                    )
+                        .padding(24.dp)
+                ) {
+                    Column {
+                        Text(
+                            text = "Supercharge Your Business",
+                            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.ExtraBold),
+                            color = Color.White
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = "Manage inventory, sales, and devices globally in one place.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White.copy(alpha = 0.9f)
+                        )
+                        Spacer(modifier = Modifier.height(20.dp))
+                        Button(
+                            onClick = onNavigateToDevices,
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.White,
+                                contentColor = Color(0xFFFF416C)
+                            ),
+                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
+                        ) {
+                            Icon(Icons.Rounded.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Add Device", fontWeight = FontWeight.Bold)
+                        }
+                    }
                 }
             }
 
@@ -83,163 +109,157 @@ fun DashboardScreen(
                     value = "",
                     onValueChange = {},
                     placeholder = { Text("Search inventory or network...") },
-                    leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = "Search") },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
+                    leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = "Search", tint = MaterialTheme.colorScheme.primary) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .shadow(4.dp, RoundedCornerShape(16.dp)),
+                    shape = RoundedCornerShape(16.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                        unfocusedBorderColor = Color.Transparent,
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        focusedContainerColor = MaterialTheme.colorScheme.surface
                     ),
                     singleLine = true
                 )
             }
 
-            // 3. Promotional / Stats Banner
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(
-                            brush = Brush.horizontalGradient(
-                                colors = listOf(Color(0xFFE53935), Color(0xFF8E24AA))
-                            )
-                        )
-                        .padding(24.dp)
-                ) {
-                    Column {
-                        Text(
-                            text = "Supercharge Your Sales",
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                            color = Color.White
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "List your devices to the global network today.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.White.copy(alpha = 0.9f)
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Button(
-                            onClick = onNavigateToDevices,
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.White,
-                                contentColor = Color(0xFFE53935)
-                            )
-                        ) {
-                            Text("Add Device")
-                        }
-                    }
-                }
-            }
-
-            // 4. Shop Management Grid
+            // 3. Operations Grid
             item {
                 Text(
-                    text = "Manage Shop",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    modifier = Modifier.padding(bottom = 12.dp)
+                    text = "Core Operations",
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    modifier = Modifier.padding(bottom = 16.dp, start = 4.dp)
                 )
                 
-                // Using Rows and Columns to build a custom grid
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         Box(modifier = Modifier.weight(1f)) {
-                            ShopActionItem("Sales", Icons.Rounded.ShoppingCart, onClick = onNavigateToSales)
+                            ModernActionCard("Sales", "Manage", Icons.Rounded.PointOfSale, Color(0xFF4CAF50), onNavigateToSales)
                         }
-                        Spacer(modifier = Modifier.width(8.dp))
                         Box(modifier = Modifier.weight(1f)) {
-                            ShopActionItem("Purchases", Icons.Rounded.LocalMall, onClick = onNavigateToPurchases)
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Box(modifier = Modifier.weight(1f)) {
-                            ShopActionItem("Inventory", Icons.Rounded.Inventory, onClick = onNavigateToInventory)
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Box(modifier = Modifier.weight(1f)) {
-                            ShopActionItem("Devices", Icons.Rounded.Smartphone, onClick = onNavigateToDevices)
+                            ModernActionCard("Purchases", "Inward", Icons.Rounded.ShoppingBag, Color(0xFF2196F3), onNavigateToPurchases)
                         }
                     }
                     
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Start
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         Box(modifier = Modifier.weight(1f)) {
-                            ShopActionItem("Settlements", Icons.Rounded.Payments, onClick = onNavigateToSettlements)
+                            ModernActionCard("Inventory", "Stock", Icons.Rounded.Inventory2, Color(0xFFFF9800), onNavigateToInventory)
                         }
-                        Spacer(modifier = Modifier.width(8.dp))
                         Box(modifier = Modifier.weight(1f)) {
-                            ShopActionItem("Network", Icons.Rounded.Language, onClick = onNavigateToNetworkInventory)
+                            ModernActionCard("Devices", "Catalog", Icons.Rounded.DevicesOther, Color(0xFF9C27B0), onNavigateToDevices)
                         }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Box(modifier = Modifier.weight(1f)) {
-                            if (isSuperAdmin) {
-                                ShopActionItem("Shops", Icons.Rounded.Store, onClick = onNavigateToShops)
-                            }
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Box(modifier = Modifier.weight(1f)) {} // Empty placeholders for alignment
                     }
                 }
+            }
+
+            // 4. Network & Admin Grid
+            item {
+                Text(
+                    text = "Network & Admin",
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    modifier = Modifier.padding(top = 8.dp, bottom = 16.dp, start = 4.dp)
+                )
+
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Box(modifier = Modifier.weight(1f)) {
+                            ModernActionCard("Network", "Global", Icons.Rounded.Public, Color(0xFF00BCD4), onNavigateToNetworkInventory)
+                        }
+                        Box(modifier = Modifier.weight(1f)) {
+                            ModernActionCard("Settlements", "Finance", Icons.Rounded.AccountBalanceWallet, Color(0xFFF44336), onNavigateToSettlements)
+                        }
+                    }
+
+                    if (isSuperAdmin) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Box(modifier = Modifier.weight(1f)) {
+                                ModernActionCard("Shops", "Manage", Icons.Rounded.Storefront, Color(0xFF673AB7), onNavigateToShops)
+                            }
+                            Box(modifier = Modifier.weight(1f)) {} // Placeholder
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(40.dp))
             }
         }
     }
 }
 
 @Composable
-private fun ShopActionItem(
+private fun ModernActionCard(
     title: String,
+    subtitle: String,
     icon: ImageVector,
+    iconTint: Color,
     onClick: () -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.92f else 1f,
+        targetValue = if (isPressed) 0.95f else 1f,
         animationSpec = tween(durationMillis = 150),
         label = "scale"
     )
 
-    Column(
+    Card(
         modifier = Modifier
             .fillMaxWidth()
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
             }
+            .shadow(8.dp, RoundedCornerShape(20.dp), spotColor = iconTint.copy(alpha = 0.5f))
             .clickable(
                 interactionSource = interactionSource,
-                indication = null, // Custom visual feedback via scale
+                indication = androidx.compose.material.ripple.rememberRipple(color = iconTint),
                 onClick = onClick
             ),
-        horizontalAlignment = Alignment.CenterHorizontally
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
-        Box(
-            modifier = Modifier
-                .size(64.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-                .padding(16.dp),
-            contentAlignment = Alignment.Center
+        Column(
+            modifier = Modifier.padding(20.dp),
+            horizontalAlignment = Alignment.Start
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = title,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(28.dp)
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(iconTint.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = title,
+                    tint = iconTint,
+                    modifier = Modifier.size(26.dp)
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
-            color = MaterialTheme.colorScheme.onBackground
-        )
     }
 }
 
@@ -247,15 +267,23 @@ private fun ShopActionItem(
 fun DashboardBottomNav() {
     var selectedItem by remember { mutableStateOf(0) }
     val items = listOf("Home", "Inventory", "Network", "Profile")
-    val icons = listOf(Icons.Rounded.Home, Icons.Rounded.Inventory, Icons.Rounded.Language, Icons.Rounded.Person)
+    val icons = listOf(Icons.Rounded.Home, Icons.Rounded.Inventory2, Icons.Rounded.Public, Icons.Rounded.Person)
     
-    NavigationBar {
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.surface,
+        tonalElevation = 8.dp
+    ) {
         items.forEachIndexed { index, item ->
             NavigationBarItem(
                 icon = { Icon(icons[index], contentDescription = item) },
-                label = { Text(item) },
+                label = { Text(item, style = MaterialTheme.typography.labelSmall) },
                 selected = selectedItem == index,
-                onClick = { selectedItem = index }
+                onClick = { selectedItem = index },
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    indicatorColor = MaterialTheme.colorScheme.primaryContainer
+                )
             )
         }
     }
