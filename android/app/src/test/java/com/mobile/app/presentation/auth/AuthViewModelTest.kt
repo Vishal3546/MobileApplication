@@ -24,6 +24,7 @@ import org.junit.Test
 class AuthViewModelTest {
 
     private val authRepository: AuthRepository = mockk(relaxed = true)
+    private val tokenStorage: com.mobile.app.core.security.TokenStorage = mockk(relaxed = true)
     private lateinit var classUnderTest: AuthViewModel
     private val testDispatcher = StandardTestDispatcher()
 
@@ -40,7 +41,7 @@ class AuthViewModelTest {
     @Test
     fun `init checks session and sets Authenticated if valid`() = runTest {
         every { authRepository.hasValidSession() } returns true
-        classUnderTest = AuthViewModel(authRepository)
+        classUnderTest = AuthViewModel(authRepository, tokenStorage)
         
         classUnderTest.authState.test {
             assertEquals(AuthState.Authenticated, awaitItem())
@@ -50,7 +51,7 @@ class AuthViewModelTest {
     @Test
     fun `init checks session and sets Unauthenticated if invalid`() = runTest {
         every { authRepository.hasValidSession() } returns false
-        classUnderTest = AuthViewModel(authRepository)
+        classUnderTest = AuthViewModel(authRepository, tokenStorage)
         
         classUnderTest.authState.test {
             assertEquals(AuthState.Unauthenticated, awaitItem())
@@ -60,7 +61,7 @@ class AuthViewModelTest {
     @Test
     fun `login success sets Authenticated`() = runTest {
         every { authRepository.hasValidSession() } returns false
-        classUnderTest = AuthViewModel(authRepository)
+        classUnderTest = AuthViewModel(authRepository, tokenStorage)
         
         val user = CurrentUser("1", "test", emptyList(), emptyList())
         coEvery { authRepository.login(any(), any()) } returns NetworkState.Success(user)
@@ -77,7 +78,7 @@ class AuthViewModelTest {
     @Test
     fun `logout clears session and sets Unauthenticated`() = runTest {
         every { authRepository.hasValidSession() } returns true
-        classUnderTest = AuthViewModel(authRepository)
+        classUnderTest = AuthViewModel(authRepository, tokenStorage)
         
         coEvery { authRepository.logout() } returns NetworkState.Success(Unit)
         
