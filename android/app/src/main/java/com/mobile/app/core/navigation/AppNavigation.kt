@@ -84,7 +84,6 @@ fun AppNavigation(
                 onNavigateToSales = { navController.navigate("saleList") },
                 onNavigateToPurchases = { navController.navigate("purchaseList") },
                 onNavigateToInventory = { navController.navigate("inventoryList") },
-                onNavigateToCustomers = { navController.navigate("customerList") },
                 onNavigateToDevices = { navController.navigate("deviceList") },
                 onNavigateToNetworkInventory = { navController.navigate("networkInventory") },
                 onNavigateToSettlements = { navController.navigate("settlementList") }

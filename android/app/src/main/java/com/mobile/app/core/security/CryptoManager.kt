@@ -7,7 +7,7 @@ import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
-import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.GCMParameterSpec
 
 class CryptoManager {
 
@@ -51,7 +51,7 @@ class CryptoManager {
             val ciphertext = combined.copyOfRange(12, combined.size)
             
             val cipher = Cipher.getInstance(TRANSFORMATION)
-            val spec = IvParameterSpec(iv) // 128-bit authentication tag
+            val spec = GCMParameterSpec(128, iv) // 128-bit authentication tag
             cipher.init(Cipher.DECRYPT_MODE, getSecretKey(), spec)
             
             val plaintext = cipher.doFinal(ciphertext)
