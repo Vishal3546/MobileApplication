@@ -72,6 +72,8 @@ class ShopViewModel @Inject constructor(
                 NetworkState.Loading -> { /* Handled initially */ }
             }
         }
+    }
+
     fun resetCreateState() {
         _createShopState.value = CreateShopState.Idle
     }
