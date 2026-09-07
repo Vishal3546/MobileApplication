@@ -37,6 +37,9 @@ import com.mobile.app.presentation.sales.list.SaleListScreen
 import com.mobile.app.presentation.inventory.list.InventoryListScreen
 import com.mobile.app.presentation.settlement.SettlementListScreen
 import com.mobile.app.presentation.network_inventory.NetworkInventoryScreen
+import com.mobile.app.presentation.shop.ShopListScreen
+import com.mobile.app.presentation.shop.CreateShopScreen
+
 @Composable
 fun AppNavigation(
     authViewModel: AuthViewModel = hiltViewModel()
@@ -75,6 +78,7 @@ fun AppNavigation(
             }
 
             DashboardScreen(
+                isSuperAdmin = authViewModel.isSuperAdmin(),
                 onLogout = {
                     authViewModel.logout()
                     navController.navigate("login") {
@@ -86,7 +90,21 @@ fun AppNavigation(
                 onNavigateToInventory = { navController.navigate("inventoryList") },
                 onNavigateToDevices = { navController.navigate("deviceList") },
                 onNavigateToNetworkInventory = { navController.navigate("networkInventory") },
-                onNavigateToSettlements = { navController.navigate("settlementList") }
+                onNavigateToSettlements = { navController.navigate("settlementList") },
+                onNavigateToShops = { navController.navigate("shopList") }
+            )
+        }
+
+        composable("shopList") {
+            ShopListScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToCreate = { navController.navigate("shopCreate") }
+            )
+        }
+        
+        composable("shopCreate") {
+            CreateShopScreen(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 

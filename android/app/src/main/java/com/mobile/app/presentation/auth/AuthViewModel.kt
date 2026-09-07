@@ -14,7 +14,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    val tokenStorage: com.mobile.app.core.security.TokenStorage
 ) : ViewModel() {
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Loading)
@@ -68,5 +69,19 @@ class AuthViewModel @Inject constructor(
     fun setSessionExpired() {
         _authState.value = AuthState.SessionExpired
         authRepository.clearSession()
+    }
+
+    fun isSuperAdmin(): Boolean {
+        val token = tokenStorage.getAccessToken() ?: return false
+        try {
+            val parts = token.split(".")
+            if (parts.size == 3) {
+                val payload = String(android.util.Base64.decode(parts[1], android.util.Base64.URL_SAFE))
+                return payload.contains("\"ROLE_SUPER_ADMIN\"")
+            }
+        } catch (e: Exception) {
+            // Ignore
+        }
+        return false
     }
 }

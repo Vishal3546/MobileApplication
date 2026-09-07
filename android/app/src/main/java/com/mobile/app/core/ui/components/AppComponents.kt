@@ -179,10 +179,18 @@ fun StatusChip(
 @Composable
 fun AppTopBar(
     title: String,
-    onLogoutClick: (() -> Unit)? = null
+    onLogoutClick: (() -> Unit)? = null,
+    onBackClick: (() -> Unit)? = null
 ) {
     TopAppBar(
         title = { Text(title) },
+        navigationIcon = {
+            if (onBackClick != null) {
+                IconButton(onClick = onBackClick) {
+                    Icon(androidx.compose.material.icons.Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
+                }
+            }
+        },
         actions = {
             if (onLogoutClick != null) {
                 TextButton(onClick = onLogoutClick) {

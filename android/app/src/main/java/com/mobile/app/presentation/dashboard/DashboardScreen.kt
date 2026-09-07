@@ -28,13 +28,15 @@ import com.mobile.app.core.ui.components.AppTopBar
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
+    isSuperAdmin: Boolean = false,
     onLogout: () -> Unit,
     onNavigateToSales: () -> Unit = {},
     onNavigateToPurchases: () -> Unit = {},
     onNavigateToInventory: () -> Unit = {},
     onNavigateToDevices: () -> Unit = {},
     onNavigateToNetworkInventory: () -> Unit = {},
-    onNavigateToSettlements: () -> Unit = {}
+    onNavigateToSettlements: () -> Unit = {},
+    onNavigateToShops: () -> Unit = {}
 ) {
     Scaffold(
         topBar = {
@@ -175,7 +177,11 @@ fun DashboardScreen(
                             ShopActionItem("Network", Icons.Rounded.Language, onClick = onNavigateToNetworkInventory)
                         }
                         Spacer(modifier = Modifier.width(8.dp))
-                        Box(modifier = Modifier.weight(1f)) {} // Empty placeholders for alignment
+                        Box(modifier = Modifier.weight(1f)) {
+                            if (isSuperAdmin) {
+                                ShopActionItem("Shops", Icons.Rounded.Store, onClick = onNavigateToShops)
+                            }
+                        }
                         Spacer(modifier = Modifier.width(8.dp))
                         Box(modifier = Modifier.weight(1f)) {} // Empty placeholders for alignment
                     }

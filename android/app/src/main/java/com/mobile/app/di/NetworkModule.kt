@@ -84,4 +84,10 @@ object NetworkModule {
     fun provideMediaApi(retrofit: Retrofit): com.mobile.app.data.remote.api.MediaApi {
         return retrofit.create(com.mobile.app.data.remote.api.MediaApi::class.java)
     }
+
+    @Provides
+    @Singleton
+    fun provideShopApi(retrofit: Retrofit): com.mobile.app.data.remote.api.ShopApi {
+        return retrofit.create(com.mobile.app.data.remote.api.ShopApi::class.java)
+    }
 }
