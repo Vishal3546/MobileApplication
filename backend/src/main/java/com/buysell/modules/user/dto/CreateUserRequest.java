@@ -14,4 +14,5 @@ public class CreateUserRequest {
     @NotBlank private String phone;
     private List<UUID> roleIds;
     private UUID branchId;
+    private UUID shopId;
 }

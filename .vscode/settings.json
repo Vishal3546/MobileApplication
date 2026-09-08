@@ -3,5 +3,6 @@
     "java.import.gradle.java.home": "C:/Program Files/Eclipse Adoptium/jdk-17.0.20.8-hotspot",
     "java.jdt.ls.java.home": "C:/Program Files/Eclipse Adoptium/jdk-17.0.20.8-hotspot",
     "java.format.settings.url": ".vscode/java-formatter.xml",
-    "java.compile.nullAnalysis.mode": "disabled"
+    "java.compile.nullAnalysis.mode": "disabled",
+    "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx4G -Xms100m -Xlog:disable"
 }

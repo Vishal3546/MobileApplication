@@ -90,4 +90,10 @@ object NetworkModule {
     fun provideShopApi(retrofit: Retrofit): com.mobile.app.data.remote.api.ShopApi {
         return retrofit.create(com.mobile.app.data.remote.api.ShopApi::class.java)
     }
+
+    @Provides
+    @Singleton
+    fun provideUserApi(retrofit: Retrofit): com.mobile.app.data.remote.api.UserApi {
+        return retrofit.create(com.mobile.app.data.remote.api.UserApi::class.java)
+    }
 }

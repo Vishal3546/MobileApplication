@@ -38,7 +38,8 @@ fun DashboardScreen(
     onNavigateToDevices: () -> Unit = {},
     onNavigateToNetworkInventory: () -> Unit = {},
     onNavigateToSettlements: () -> Unit = {},
-    onNavigateToShops: () -> Unit = {}
+    onNavigateToShops: () -> Unit = {},
+    onNavigateToCreateUser: () -> Unit = {}
 ) {
     Scaffold(
         topBar = {
@@ -188,7 +189,9 @@ fun DashboardScreen(
                             Box(modifier = Modifier.weight(1f)) {
                                 ModernActionCard("Shops", "Manage", Icons.Rounded.Storefront, Color(0xFF673AB7), onNavigateToShops)
                             }
-                            Box(modifier = Modifier.weight(1f)) {} // Placeholder
+                            Box(modifier = Modifier.weight(1f)) {
+                                ModernActionCard("Users", "Add User", Icons.Rounded.PersonAdd, Color(0xFFE91E63), onNavigateToCreateUser)
+                            }
                         }
                     }
                 }

@@ -91,7 +91,14 @@ fun AppNavigation(
                 onNavigateToDevices = { navController.navigate("deviceList") },
                 onNavigateToNetworkInventory = { navController.navigate("networkInventory") },
                 onNavigateToSettlements = { navController.navigate("settlementList") },
-                onNavigateToShops = { navController.navigate("shopList") }
+                onNavigateToShops = { navController.navigate("shopList") },
+                onNavigateToCreateUser = { navController.navigate("userCreate") }
+            )
+        }
+
+        composable("userCreate") {
+            com.mobile.app.presentation.user.CreateUserScreen(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 

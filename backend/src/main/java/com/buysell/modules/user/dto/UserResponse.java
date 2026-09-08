@@ -1,6 +1,7 @@
 package com.buysell.modules.user.dto;
 import lombok.Builder;
 import lombok.Data;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.List;
 
@@ -17,4 +18,6 @@ public class UserResponse {
     private boolean isLocked;
     private List<String> roles;
     private UUID branchId;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

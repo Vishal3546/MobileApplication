@@ -2,6 +2,7 @@ package com.buysell.modules.user.controller;
 
 import com.buysell.modules.user.dto.*;
 import com.buysell.modules.audit.service.AuditService;
+import com.buysell.modules.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -19,6 +20,7 @@ import java.util.List;
 public class UserController {
     
     private final AuditService auditService;
+    private final UserService userService;
 
     @GetMapping
     @PreAuthorize("hasAuthority('VIEW_USERS')")
@@ -36,8 +38,9 @@ public class UserController {
     @PreAuthorize("hasAuthority('CREATE_USER')")
     public ResponseEntity<UserResponse> createUser(@RequestBody CreateUserRequest req, Authentication auth) {
         checkPrivilegeEscalation(req.getRoleIds(), auth);
-        auditService.logAction(null, null, "USER_CREATED", "User", null, null, req.getUsername(), null, null);
-        return ResponseEntity.ok(UserResponse.builder().username(req.getUsername()).build());
+        UserResponse response = userService.createUser(req);
+        auditService.logAction(null, null, "USER_CREATED", "User", response.getId(), null, req.getUsername(), null, null);
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{id}")

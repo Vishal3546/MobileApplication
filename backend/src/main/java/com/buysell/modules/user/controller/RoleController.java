@@ -1,12 +1,15 @@
 package com.buysell.modules.user.controller;
 
 import com.buysell.modules.audit.service.AuditService;
+import com.buysell.modules.user.repository.RoleRepository;
+import com.buysell.modules.user.dto.RoleResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/roles")
@@ -14,11 +17,19 @@ import java.util.List;
 public class RoleController {
     
     private final AuditService auditService;
+    private final RoleRepository roleRepository;
 
     @GetMapping
-    @PreAuthorize("hasAuthority('VIEW_ROLES')")
-    public ResponseEntity<List<Object>> getRoles() {
-        return ResponseEntity.ok(List.of());
+    @PreAuthorize("hasAuthority('VIEW_USERS')")
+    public ResponseEntity<List<RoleResponse>> getRoles() {
+        List<RoleResponse> roles = roleRepository.findAll().stream()
+                .map(role -> RoleResponse.builder()
+                        .id(role.getId())
+                        .name(role.getName())
+                        .description(role.getDescription())
+                        .build())
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(roles);
     }
     
     @PostMapping
