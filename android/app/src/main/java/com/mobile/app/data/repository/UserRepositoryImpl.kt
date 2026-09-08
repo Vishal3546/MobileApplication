@@ -4,6 +4,7 @@ import com.mobile.app.data.remote.api.UserApi
 import com.mobile.app.data.remote.dto.user.CreateUserRequestDto
 import com.mobile.app.data.remote.dto.user.RoleResponseDto
 import com.mobile.app.data.remote.dto.user.UserResponseDto
+import com.mobile.app.domain.model.ApiErrorType
 import com.mobile.app.domain.model.NetworkState
 import com.mobile.app.domain.repository.UserRepository
 import kotlinx.coroutines.Dispatchers
@@ -20,12 +21,12 @@ class UserRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 NetworkState.Success(response.body() ?: emptyList())
             } else {
-                NetworkState.Error("Failed to fetch roles: ${response.code()}")
+                NetworkState.Error(ApiErrorType.ServerError, "Failed to fetch roles: ${response.code()}")
             }
         } catch (e: UnknownHostException) {
             NetworkState.Offline
         } catch (e: Exception) {
-            NetworkState.Error(e.message ?: "An unknown error occurred")
+            NetworkState.Error(ApiErrorType.Unknown, e.message ?: "An unknown error occurred")
         }
     }
 
@@ -35,14 +36,14 @@ class UserRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 response.body()?.let {
                     NetworkState.Success(it)
-                } ?: NetworkState.Error("Empty response body")
+                } ?: NetworkState.Error(ApiErrorType.Unknown, "Empty response body")
             } else {
-                NetworkState.Error("Failed to create user: ${response.code()}")
+                NetworkState.Error(ApiErrorType.ServerError, "Failed to create user: ${response.code()}")
             }
         } catch (e: UnknownHostException) {
             NetworkState.Offline
         } catch (e: Exception) {
-            NetworkState.Error(e.message ?: "An unknown error occurred")
+            NetworkState.Error(ApiErrorType.Unknown, e.message ?: "An unknown error occurred")
         }
     }
 }
