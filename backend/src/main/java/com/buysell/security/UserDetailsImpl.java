@@ -20,19 +20,23 @@ import java.util.stream.Collectors;
 public class UserDetailsImpl implements UserDetails {
     private static final long serialVersionUID = 1L;
 
-    private UUID id;
-    private String username;
+    private final UUID id;
+    private final String username;
 
     @JsonIgnore
-    private String password;
+    private final String password;
 
-    private Collection<? extends GrantedAuthority> authorities;
+    private final Collection<? extends GrantedAuthority> authorities;
 
     public static UserDetailsImpl build(User user) {
         List<GrantedAuthority> authorities = user.getRoles().stream()
                 .flatMap(role -> role.getPermissions().stream())
                 .map(permission -> new SimpleGrantedAuthority(permission.getName()))
                 .collect(Collectors.toList());
+
+        user.getRoles().forEach(role -> {
+            authorities.add(new SimpleGrantedAuthority(role.getName()));
+        });
 
         return new UserDetailsImpl(
                 user.getId(),
