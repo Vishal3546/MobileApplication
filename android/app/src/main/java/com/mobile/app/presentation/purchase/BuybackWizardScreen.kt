@@ -33,7 +33,7 @@ fun BuybackWizardScreen(
     // Handle customer creation success in step 5
     LaunchedEffect(customerActionState) {
         if (customerActionState is CustomerActionState.Success) {
-            val customerId = (customerActionState as CustomerActionState.Success).customer.id.toString()
+            val customerId = wizardState.customerId ?: ""
             viewModel.createFinalPurchase(customerId, "Buyback initiated via wizard")
             customerViewModel.resetActionState()
         }

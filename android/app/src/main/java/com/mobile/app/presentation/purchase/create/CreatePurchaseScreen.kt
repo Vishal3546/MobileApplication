@@ -83,14 +83,13 @@ fun CreatePurchaseScreen(
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = {
-                    viewModel.createPurchase(
-                        customerId, 
-                        deviceId, 
-                        suggestedPrice.toBigDecimalOrNull() ?: java.math.BigDecimal.ZERO,
-                        negotiatedPrice.toBigDecimalOrNull() ?: java.math.BigDecimal.ZERO,
-                        finalPrice.toBigDecimalOrNull() ?: java.math.BigDecimal.ZERO,
-                        notes
-                    )
+                    val sug = suggestedPrice.toBigDecimalOrNull() ?: java.math.BigDecimal.ZERO
+                    val neg = negotiatedPrice.toBigDecimalOrNull() ?: java.math.BigDecimal.ZERO
+                    val fin = finalPrice.toBigDecimalOrNull() ?: java.math.BigDecimal.ZERO
+                    viewModel.setPrices(sug, neg, fin)
+                    if (customerId.isNotBlank()) {
+                        viewModel.createFinalPurchase(customerId, notes)
+                    }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !wizardState.isLoading
