@@ -39,26 +39,13 @@ fun CreateUserScreen(
     var selectedShopId by remember { mutableStateOf<UUID?>(null) }
     var shopDropdownExpanded by remember { mutableStateOf(false) }
 
-    // Auto-fill logic when shop is selected
+    // Auto-fill logic when shop is selected (keep name separate, only default email/phone if blank)
     LaunchedEffect(selectedShopId) {
         if (selectedShopId != null) {
             val selectedShop = shops.find { it.id == selectedShopId }
             selectedShop?.let {
-                // Heuristic: If shop has a name like "John Doe Shop", we can try to split it, 
-                // but usually shops have emails and contact names. 
-                // For now, we'll use the shop's email if available.
-                email = it.email ?: ""
-                phone = it.phone ?: ""
-                
-                // If the shop name contains a space, we can guess first/last name
-                val nameParts = it.name.split(" ")
-                if (nameParts.size >= 2) {
-                    firstName = nameParts[0]
-                    lastName = nameParts.drop(1).joinToString(" ")
-                } else {
-                    firstName = it.name
-                    lastName = ""
-                }
+                if (email.isBlank()) email = it.email ?: ""
+                if (phone.isBlank()) phone = it.phone ?: ""
             }
         }
     }

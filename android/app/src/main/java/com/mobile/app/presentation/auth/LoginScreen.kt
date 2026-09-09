@@ -1,11 +1,15 @@
 package com.mobile.app.presentation.auth
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Smartphone
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.mobile.app.core.ui.components.AppTextField
@@ -31,64 +35,102 @@ fun LoginScreen(
         }
     }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .padding(20.dp),
+        contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = "MobileBiz",
-            style = MaterialTheme.typography.headlineLarge,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
-        
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        Text(
-            text = "Sign in to your account",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        
-        Spacer(modifier = Modifier.height(48.dp))
-        
-        AppTextField(
-            value = username,
-            onValueChange = { username = it },
-            label = "Username or Mobile"
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        PasswordField(
-            value = password,
-            onValueChange = { password = it },
-            label = "Password"
-        )
-        
-        if (error != null) {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = error!!,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
-        
-        Spacer(modifier = Modifier.height(32.dp))
-        
-        PrimaryButton(
-            text = "Login",
-            onClick = {
-                viewModel.login(username, password) { loading ->
-                    isLoading = loading
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .shadow(
+                    elevation = 12.dp,
+                    shape = RoundedCornerShape(24.dp),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                )
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                    shape = RoundedCornerShape(24.dp)
+                ),
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surface
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(28.dp)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                    modifier = Modifier.size(56.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Rounded.Smartphone,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
                 }
-            },
-            isLoading = isLoading,
-            enabled = username.isNotBlank() && password.isNotBlank()
-        )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "MobileBiz",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Text(
+                    text = "Sign in to continue",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                AppTextField(
+                    value = username,
+                    onValueChange = { username = it },
+                    label = "Username or Mobile"
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                PasswordField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = "Password"
+                )
+
+                if (error != null) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = error!!,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(28.dp))
+
+                PrimaryButton(
+                    text = "Login",
+                    onClick = {
+                        viewModel.login(username, password) { loading ->
+                            isLoading = loading
+                        }
+                    },
+                    isLoading = isLoading,
+                    enabled = username.isNotBlank() && password.isNotBlank()
+                )
+            }
+        }
     }
 }

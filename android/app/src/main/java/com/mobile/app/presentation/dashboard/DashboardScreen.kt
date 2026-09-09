@@ -3,6 +3,7 @@ package com.mobile.app.presentation.dashboard
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -191,7 +192,17 @@ fun DashboardScreen(
 @Composable
 fun KPICard(title: String, value: String, icon: ImageVector, color: Color, modifier: Modifier = Modifier) {
     Surface(
-        modifier = modifier.shadow(4.dp, RoundedCornerShape(20.dp)),
+        modifier = modifier
+            .shadow(
+                elevation = 6.dp,
+                shape = RoundedCornerShape(20.dp),
+                spotColor = color.copy(alpha = 0.25f)
+            )
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                shape = RoundedCornerShape(20.dp)
+            ),
         shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surface
     ) {
@@ -216,10 +227,16 @@ fun KPICard(title: String, value: String, icon: ImageVector, color: Color, modif
 @Composable
 fun OperationCard(title: String, icon: ImageVector, iconColor: Color, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Card(
-        modifier = modifier.clickable { onClick() },
+        modifier = modifier
+            .shadow(
+                elevation = 4.dp,
+                shape = RoundedCornerShape(20.dp),
+                spotColor = iconColor.copy(alpha = 0.2f)
+            )
+            .clickable { onClick() },
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(28.dp))

@@ -40,6 +40,7 @@ import com.mobile.app.presentation.settlement.SettlementListScreen
 import com.mobile.app.presentation.network_inventory.NetworkInventoryScreen
 import com.mobile.app.presentation.shop.ShopListScreen
 import com.mobile.app.presentation.shop.CreateShopScreen
+import com.mobile.app.core.utils.DirectInAppUpdateDialog
 
 @Composable
 fun AppNavigation(
@@ -47,6 +48,9 @@ fun AppNavigation(
 ) {
     val navController = rememberNavController()
     val authState by authViewModel.authState.collectAsState()
+
+    // Automatic Direct Custom In-App Update Check
+    DirectInAppUpdateDialog()
 
     if (authState == AuthState.Loading) {
         // Just empty or a splash
