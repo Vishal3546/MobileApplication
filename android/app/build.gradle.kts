@@ -10,6 +10,9 @@ plugins {
     id("com.google.firebase.appdistribution")
 }
 
+val appVersionCode = project.findProperty("versionCode")?.toString()?.toIntOrNull() ?: 1
+val appVersionName = project.findProperty("versionName")?.toString() ?: "1.0.0.1"
+
 android {
     namespace = "com.mobile.app"
     compileSdk = 34
@@ -18,8 +21,8 @@ android {
         applicationId = "com.mobile.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = appVersionCode
+        versionName = appVersionName
         
         buildConfigField("String", "API_BASE_URL", "\"https://mobileapplication-qtau.onrender.com/\"")
 
@@ -102,6 +105,9 @@ dependencies {
     
     // DataStore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+    // Firebase App Distribution In-App Updates
+    implementation("com.google.firebase:firebase-appdistribution:16.0.0-beta14")
     
     // Room
     implementation("androidx.room:room-runtime:2.6.1")
