@@ -28,6 +28,7 @@ import com.mobile.app.presentation.device.inspection.DeviceInspectionHistoryScre
 import com.mobile.app.presentation.device.media.DeviceMediaScreen
 import com.mobile.app.presentation.device.verification.ImeiVerificationScreen
 import com.mobile.app.presentation.device.lifecycle.DeviceLifecycleScreen
+import com.mobile.app.presentation.purchase.BuybackWizardScreen
 import com.mobile.app.presentation.purchase.list.PurchaseListScreen
 import com.mobile.app.presentation.purchase.create.CreatePurchaseScreen
 import com.mobile.app.presentation.purchase.detail.PurchaseDetailScreen
@@ -92,7 +93,19 @@ fun AppNavigation(
                 onNavigateToNetworkInventory = { navController.navigate("networkInventory") },
                 onNavigateToSettlements = { navController.navigate("settlementList") },
                 onNavigateToShops = { navController.navigate("shopList") },
-                onNavigateToCreateUser = { navController.navigate("userCreate") }
+                onNavigateToCreateUser = { navController.navigate("userCreate") },
+                onNavigateToBuyback = { navController.navigate("buybackWizard") }
+            )
+        }
+
+        composable("buybackWizard") {
+            BuybackWizardScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onComplete = {
+                    navController.navigate("purchaseList") {
+                        popUpTo("dashboard")
+                    }
+                }
             )
         }
 

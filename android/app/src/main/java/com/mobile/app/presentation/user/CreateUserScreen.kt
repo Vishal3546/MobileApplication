@@ -7,6 +7,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -37,6 +38,30 @@ fun CreateUserScreen(
     var selectedShopId by remember { mutableStateOf<UUID?>(null) }
     var shopDropdownExpanded by remember { mutableStateOf(false) }
 
+    // Auto-fill logic when shop is selected
+    LaunchedEffect(selectedShopId) {
+        if (selectedShopId != null) {
+            val selectedShop = shops.find { it.id == selectedShopId }
+            selectedShop?.let {
+                // Heuristic: If shop has a name like "John Doe Shop", we can try to split it, 
+                // but usually shops have emails and contact names. 
+                // For now, we'll use the shop's email if available.
+                email = it.email ?: ""
+                phone = it.phone ?: ""
+                
+                // If the shop name contains a space, we can guess first/last name
+                val nameParts = it.name.split(" ")
+                if (nameParts.size >= 2) {
+                    firstName = nameParts[0]
+                    lastName = nameParts.drop(1).joinToString(" ")
+                } else {
+                    firstName = it.name
+                    lastName = ""
+                }
+            }
+        }
+    }
+
     LaunchedEffect(state) {
         if (state is CreateUserState.Success) {
             viewModel.resetCreateState()
@@ -66,6 +91,78 @@ fun CreateUserScreen(
                     color = MaterialTheme.colorScheme.error
                 )
             }
+
+            Text("Selection", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+
+            // Shop Selection Dropdown (Primary Option as requested)
+            ExposedDropdownMenuBox(
+                expanded = shopDropdownExpanded,
+                onExpandedChange = { shopDropdownExpanded = it }
+            ) {
+                OutlinedTextField(
+                    value = shops.find { it.id == selectedShopId }?.name ?: "Select Shop",
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Shop") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = shopDropdownExpanded) },
+                    modifier = Modifier.menuAnchor().fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                    )
+                )
+                ExposedDropdownMenu(
+                    expanded = shopDropdownExpanded,
+                    onDismissRequest = { shopDropdownExpanded = false }
+                ) {
+                    shops.forEach { shop ->
+                        DropdownMenuItem(
+                            text = { Text(shop.name) },
+                            onClick = {
+                                selectedShopId = shop.id
+                                shopDropdownExpanded = false
+                                // Automatically set role to SHOP_OWNER if a shop is selected
+                                val shopOwnerRole = roles.find { it.name == "SHOP_OWNER" }
+                                if (shopOwnerRole != null) {
+                                    selectedRoleId = shopOwnerRole.id
+                                }
+                            }
+                        )
+                    }
+                }
+            }
+
+            // Role Selection
+            ExposedDropdownMenuBox(
+                expanded = roleDropdownExpanded,
+                onExpandedChange = { roleDropdownExpanded = it }
+            ) {
+                OutlinedTextField(
+                    value = roles.find { it.id == selectedRoleId }?.name ?: "Select Role",
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Role") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = roleDropdownExpanded) },
+                    modifier = Modifier.menuAnchor().fillMaxWidth()
+                )
+                ExposedDropdownMenu(
+                    expanded = roleDropdownExpanded,
+                    onDismissRequest = { roleDropdownExpanded = false }
+                ) {
+                    roles.forEach { role ->
+                        DropdownMenuItem(
+                            text = { Text(role.name) },
+                            onClick = {
+                                selectedRoleId = role.id
+                                roleDropdownExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            Divider(modifier = Modifier.padding(vertical = 8.dp))
+            Text("User Details", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
             OutlinedTextField(
                 value = firstName,
@@ -117,72 +214,6 @@ fun CreateUserScreen(
                 singleLine = true
             )
 
-            ExposedDropdownMenuBox(
-                expanded = roleDropdownExpanded,
-                onExpandedChange = { roleDropdownExpanded = it }
-            ) {
-                OutlinedTextField(
-                    value = roles.find { it.id == selectedRoleId }?.name ?: "Select Role",
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Role") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = roleDropdownExpanded) },
-                    modifier = Modifier.menuAnchor().fillMaxWidth()
-                )
-                ExposedDropdownMenu(
-                    expanded = roleDropdownExpanded,
-                    onDismissRequest = { roleDropdownExpanded = false }
-                ) {
-                    roles.forEach { role ->
-                        DropdownMenuItem(
-                            text = { Text(role.name) },
-                            onClick = {
-                                selectedRoleId = role.id
-                                roleDropdownExpanded = false
-                            }
-                        )
-                    }
-                }
-            }
-
-            val selectedRole = roles.find { it.id == selectedRoleId }
-            if (selectedRole?.name == "ADMIN" || selectedRole?.name == "SUPER_ADMIN" || selectedRole?.name == "SHOP_OWNER") {
-                ExposedDropdownMenuBox(
-                    expanded = shopDropdownExpanded,
-                    onExpandedChange = { shopDropdownExpanded = it }
-                ) {
-                    OutlinedTextField(
-                        value = shops.find { it.id == selectedShopId }?.name ?: "Select Shop (Optional)",
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Assign to Shop") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = shopDropdownExpanded) },
-                        modifier = Modifier.menuAnchor().fillMaxWidth()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = shopDropdownExpanded,
-                        onDismissRequest = { shopDropdownExpanded = false }
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text("None") },
-                            onClick = {
-                                selectedShopId = null
-                                shopDropdownExpanded = false
-                            }
-                        )
-                        shops.forEach { shop ->
-                            DropdownMenuItem(
-                                text = { Text(shop.name) },
-                                onClick = {
-                                    selectedShopId = shop.id
-                                    shopDropdownExpanded = false
-                                }
-                            )
-                        }
-                    }
-                }
-            }
-
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
@@ -202,13 +233,14 @@ fun CreateUserScreen(
                         )
                     }
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = RoundedCornerShape(12.dp),
                 enabled = username.isNotBlank() && password.isNotBlank() && state !is CreateUserState.Loading
             ) {
                 if (state is CreateUserState.Loading) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
                 } else {
-                    Text("Create User")
+                    Text("Create User Account", fontWeight = FontWeight.Bold)
                 }
             }
         }

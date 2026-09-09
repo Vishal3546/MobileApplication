@@ -25,6 +25,26 @@ fun DeviceInspectionScreen(
         }
     }
 
+    Scaffold { padding ->
+        DeviceInspectionContent(
+            modifier = Modifier.padding(padding),
+            isLoading = uiState is DeviceInspectionUiState.Loading,
+            errorMessage = (uiState as? DeviceInspectionUiState.Error)?.message,
+            onSubmit = { inspectionCreate ->
+                viewModel.createInspection(deviceId, inspectionCreate)
+            }
+        )
+    }
+}
+
+@Composable
+fun DeviceInspectionContent(
+    modifier: Modifier = Modifier,
+    isLoading: Boolean = false,
+    errorMessage: String? = null,
+    buttonText: String = "Submit Inspection",
+    onSubmit: (DeviceInspectionCreate) -> Unit
+) {
     var display by remember { mutableStateOf(InspectionStatus.NOT_TESTED) }
     var touch by remember { mutableStateOf(InspectionStatus.NOT_TESTED) }
     var camera by remember { mutableStateOf(InspectionStatus.NOT_TESTED) }
@@ -46,93 +66,89 @@ fun DeviceInspectionScreen(
     
     val scrollState = rememberScrollState()
 
-    Scaffold { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
-                .padding(16.dp)
-                .verticalScroll(scrollState)
-        ) {
-            Text("Device Inspection", style = MaterialTheme.typography.titleLarge)
-            
-            if (uiState is DeviceInspectionUiState.Error) {
-                Text(
-                    text = (uiState as DeviceInspectionUiState.Error).message,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Text("Mandatory Tests", style = MaterialTheme.typography.titleMedium)
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
-            
-            InspectionRow("Display", display) { display = it }
-            InspectionRow("Touch", touch) { touch = it }
-            InspectionRow("Camera", camera) { camera = it }
-            InspectionRow("Speaker", speaker) { speaker = it }
-            InspectionRow("Microphone", microphone) { microphone = it }
-            InspectionRow("Charging", charging) { charging = it }
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            Text("Optional Tests", style = MaterialTheme.typography.titleMedium)
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
-            
-            InspectionRow("Wi-Fi", wifi) { wifi = it }
-            InspectionRow("Bluetooth", bluetooth) { bluetooth = it }
-            InspectionRow("SIM", sim) { sim = it }
-            InspectionRow("Fingerprint", fingerprint) { fingerprint = it }
-            InspectionRow("Face ID", faceId) { faceId = it }
-            InspectionRow("Battery", battery) { battery = it }
-            InspectionRow("Flash", flash) { flash = it }
-            InspectionRow("Vibration", vibration) { vibration = it }
-            InspectionRow("Network", network) { network = it }
-            
-            OutlinedTextField(
-                value = notes,
-                onValueChange = { notes = it },
-                label = { Text("Inspection Notes") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp),
-                minLines = 3
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .verticalScroll(scrollState)
+    ) {
+        Text("Device Inspection", style = MaterialTheme.typography.titleLarge)
+        
+        if (errorMessage != null) {
+            Text(
+                text = errorMessage,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(top = 8.dp)
             )
-            
-            Button(
-                onClick = {
-                    val createDto = DeviceInspectionCreate(
-                        display = display,
-                        touch = touch,
-                        camera = camera,
-                        speaker = speaker,
-                        microphone = microphone,
-                        charging = charging,
-                        wifi = wifi,
-                        bluetooth = bluetooth,
-                        sim = sim,
-                        fingerprint = fingerprint,
-                        faceId = faceId,
-                        battery = battery,
-                        flash = flash,
-                        vibration = vibration,
-                        network = network,
-                        notes = notes
-                    )
-                    viewModel.createInspection(deviceId, createDto)
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-                enabled = uiState !is DeviceInspectionUiState.Loading
-            ) {
-                if (uiState is DeviceInspectionUiState.Loading) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-                } else {
-                    Text("Submit Inspection")
-                }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Text("Mandatory Tests", style = MaterialTheme.typography.titleMedium)
+        Divider(modifier = Modifier.padding(vertical = 8.dp))
+        
+        InspectionRow("Display", display) { display = it }
+        InspectionRow("Touch", touch) { touch = it }
+        InspectionRow("Camera", camera) { camera = it }
+        InspectionRow("Speaker", speaker) { speaker = it }
+        InspectionRow("Microphone", microphone) { microphone = it }
+        InspectionRow("Charging", charging) { charging = it }
+        InspectionRow("Battery", battery) { battery = it }
+        InspectionRow("Network", network) { network = it }
+        
+        Spacer(modifier = Modifier.height(24.dp))
+        
+        Text("Optional Tests", style = MaterialTheme.typography.titleMedium)
+        Divider(modifier = Modifier.padding(vertical = 8.dp))
+        
+        InspectionRow("Wi-Fi", wifi) { wifi = it }
+        InspectionRow("Bluetooth", bluetooth) { bluetooth = it }
+        InspectionRow("SIM", sim) { sim = it }
+        InspectionRow("Fingerprint", fingerprint) { fingerprint = it }
+        InspectionRow("Face ID", faceId) { faceId = it }
+        InspectionRow("Flash", flash) { flash = it }
+        InspectionRow("Vibration", vibration) { vibration = it }
+        
+        OutlinedTextField(
+            value = notes,
+            onValueChange = { notes = it },
+            label = { Text("Inspection Notes") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp),
+            minLines = 3
+        )
+        
+        Button(
+            onClick = {
+                onSubmit(DeviceInspectionCreate(
+                    display = display,
+                    touch = touch,
+                    camera = camera,
+                    speaker = speaker,
+                    microphone = microphone,
+                    charging = charging,
+                    wifi = wifi,
+                    bluetooth = bluetooth,
+                    sim = sim,
+                    fingerprint = fingerprint,
+                    faceId = faceId,
+                    battery = battery,
+                    flash = flash,
+                    vibration = vibration,
+                    network = network,
+                    notes = notes
+                ))
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp),
+            enabled = !isLoading
+        ) {
+            if (isLoading) {
+                CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+            } else {
+                Text(buttonText)
             }
         }
     }

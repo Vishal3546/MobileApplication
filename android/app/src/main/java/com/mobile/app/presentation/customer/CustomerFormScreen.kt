@@ -21,28 +21,11 @@ fun CustomerFormScreen(
     val actionState by viewModel.actionState.collectAsState()
     val detailState by viewModel.detailState.collectAsState()
 
-    var firstName by remember { mutableStateOf("") }
-    var lastName by remember { mutableStateOf("") }
-    var phone by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var address by remember { mutableStateOf("") }
-
     val isEdit = customerId != null
 
     LaunchedEffect(customerId) {
         if (isEdit) {
             viewModel.loadCustomer(UUID.fromString(customerId))
-        }
-    }
-    
-    LaunchedEffect(detailState) {
-        if (isEdit && detailState is CustomerDetailState.Success) {
-            val customer = (detailState as CustomerDetailState.Success).customer
-            firstName = customer.firstName
-            lastName = customer.lastName
-            phone = customer.phone
-            email = customer.email ?: ""
-            address = customer.address ?: ""
         }
     }
 
@@ -58,90 +41,130 @@ fun CustomerFormScreen(
             TopAppBar(title = { Text(if (isEdit) "Edit Customer" else "Create Customer") })
         }
     ) { padding ->
-        Column(modifier = Modifier.padding(padding).padding(16.dp).fillMaxSize()) {
-            OutlinedTextField(
-                value = firstName,
-                onValueChange = { firstName = it },
-                label = { Text("First Name") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
-                value = lastName,
-                onValueChange = { lastName = it },
-                label = { Text("Last Name") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
-                value = phone,
-                onValueChange = { phone = it },
-                label = { Text("Phone Number") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                label = { Text("Email (Optional)") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
-                value = address,
-                onValueChange = { address = it },
-                label = { Text("Address (Optional)") },
-                modifier = Modifier.fillMaxWidth()
-            )
+        val initialFirstName = (detailState as? CustomerDetailState.Success)?.customer?.firstName ?: ""
+        val initialLastName = (detailState as? CustomerDetailState.Success)?.customer?.lastName ?: ""
+        val initialPhone = (detailState as? CustomerDetailState.Success)?.customer?.phone ?: ""
+        val initialEmail = (detailState as? CustomerDetailState.Success)?.customer?.email ?: ""
+        val initialAddress = (detailState as? CustomerDetailState.Success)?.customer?.address ?: ""
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            if (actionState is CustomerActionState.Loading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-            } else {
-                Button(
-                    onClick = {
-                        if (isEdit) {
-                            viewModel.updateCustomer(
-                                id = UUID.fromString(customerId),
-                                request = UpdateCustomerRequestDto(
-                                    firstName = firstName,
-                                    lastName = lastName,
-                                    phone = phone,
-                                    altPhone = null,
-                                    email = email.takeIf { it.isNotBlank() },
-                                    address = address.takeIf { it.isNotBlank() },
-                                    status = null
-                                )
-                            )
-                        } else {
-                            viewModel.createCustomer(
-                                request = CreateCustomerRequestDto(
-                                    firstName = firstName,
-                                    lastName = lastName,
-                                    phone = phone,
-                                    altPhone = null,
-                                    email = email.takeIf { it.isNotBlank() },
-                                    address = address.takeIf { it.isNotBlank() }
-                                )
-                            )
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = firstName.isNotBlank() && lastName.isNotBlank() && phone.isNotBlank()
-                ) {
-                    Text("Save")
+        CustomerFormContent(
+            modifier = Modifier.padding(padding),
+            initialFirstName = initialFirstName,
+            initialLastName = initialLastName,
+            initialPhone = initialPhone,
+            initialEmail = initialEmail,
+            initialAddress = initialAddress,
+            isLoading = actionState is CustomerActionState.Loading,
+            errorMessage = (actionState as? CustomerActionState.Error)?.message,
+            onSubmit = { firstName, lastName, phone, email, address ->
+                if (isEdit) {
+                    viewModel.updateCustomer(
+                        id = UUID.fromString(customerId),
+                        request = UpdateCustomerRequestDto(
+                            firstName = firstName,
+                            lastName = lastName,
+                            phone = phone,
+                            altPhone = null,
+                            email = email,
+                            address = address,
+                            status = null
+                        )
+                    )
+                } else {
+                    viewModel.createCustomer(
+                        request = CreateCustomerRequestDto(
+                            firstName = firstName,
+                            lastName = lastName,
+                            phone = phone,
+                            altPhone = null,
+                            email = email,
+                            address = address
+                        )
+                    )
                 }
             }
+        )
+    }
+}
 
-            if (actionState is CustomerActionState.Error) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = (actionState as CustomerActionState.Error).message,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
+@Composable
+fun CustomerFormContent(
+    modifier: Modifier = Modifier,
+    initialFirstName: String = "",
+    initialLastName: String = "",
+    initialPhone: String = "",
+    initialEmail: String = "",
+    initialAddress: String = "",
+    isLoading: Boolean = false,
+    errorMessage: String? = null,
+    buttonText: String = "Save",
+    onSubmit: (String, String, String, String?, String?) -> Unit
+) {
+    var firstName by remember(initialFirstName) { mutableStateOf(initialFirstName) }
+    var lastName by remember(initialLastName) { mutableStateOf(initialLastName) }
+    var phone by remember(initialPhone) { mutableStateOf(initialPhone) }
+    var email by remember(initialEmail) { mutableStateOf(initialEmail) }
+    var address by remember(initialAddress) { mutableStateOf(initialAddress) }
+
+    Column(modifier = modifier.padding(16.dp).fillMaxSize()) {
+        OutlinedTextField(
+            value = firstName,
+            onValueChange = { firstName = it },
+            label = { Text("First Name") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = lastName,
+            onValueChange = { lastName = it },
+            label = { Text("Last Name") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = phone,
+            onValueChange = { phone = it },
+            label = { Text("Phone Number") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = email,
+            onValueChange = { email = it },
+            label = { Text("Email (Optional)") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = address,
+            onValueChange = { address = it },
+            label = { Text("Address (Optional)") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        if (isLoading) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+        } else {
+            Button(
+                onClick = {
+                    onSubmit(firstName, lastName, phone, email.takeIf { it.isNotBlank() }, address.takeIf { it.isNotBlank() })
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = firstName.isNotBlank() && lastName.isNotBlank() && phone.isNotBlank()
+            ) {
+                Text(buttonText)
             }
+        }
+
+        if (errorMessage != null) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = errorMessage,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
         }
     }
 }
