@@ -30,7 +30,7 @@ data class AppVersionInfo(
 
 @Composable
 fun DirectInAppUpdateDialog(
-    versionInfoUrl: String = "https://raw.githubusercontent.com/kaushal-mobilebiz/MobileApplication/main/version.json"
+    versionInfoUrl: String = "https://raw.githubusercontent.com/Vishal3546/MobileApplication/main/version.json"
 ) {
     val context = LocalContext.current
     var showDialog by remember { mutableStateOf(false) }
