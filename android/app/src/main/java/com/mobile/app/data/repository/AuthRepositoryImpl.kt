@@ -30,15 +30,23 @@ class AuthRepositoryImpl @Inject constructor(
                 )
                 NetworkState.Success(currentUser)
             } else {
-                // If it's a 4xx or 5xx, retrofit response gives errorBody.
-                // For simplicity, we just use the code to map the error.
+                val errorMsg = try {
+                    val errorBody = response.errorBody()?.string()
+                    if (!errorBody.isNullOrEmpty()) {
+                        val json = org.json.JSONObject(errorBody)
+                        json.optString("message", "Invalid username or password")
+                    } else response.body()?.message ?: "Login failed"
+                } catch (e: Exception) {
+                    if (response.code() == 401) "Invalid username or password" else response.message()
+                }
+
                 val type = when (response.code()) {
                     401 -> com.mobile.app.domain.model.ApiErrorType.SessionExpired
                     400 -> com.mobile.app.domain.model.ApiErrorType.ValidationError
                     403 -> com.mobile.app.domain.model.ApiErrorType.PermissionDenied
                     else -> com.mobile.app.domain.model.ApiErrorType.Unknown
                 }
-                NetworkState.Error(type, response.message())
+                NetworkState.Error(type, errorMsg)
             }
         } catch (e: Exception) {
             val (type, msg) = ApiErrorMapper.map(e)
