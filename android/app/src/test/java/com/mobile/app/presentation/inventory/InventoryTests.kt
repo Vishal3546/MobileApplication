@@ -1,6 +1,7 @@
 package com.mobile.app.presentation.inventory
 
 import androidx.paging.PagingData
+import com.mobile.app.core.security.TokenStorage
 import com.mobile.app.domain.model.ApiErrorType
 import com.mobile.app.domain.model.NetworkState
 import com.mobile.app.domain.model.inventory.Inventory
@@ -30,6 +31,7 @@ import java.util.UUID
 class InventoryTests {
 
     private val repository: InventoryRepository = mockk(relaxed = true)
+    private val tokenStorage: TokenStorage = mockk(relaxed = true)
     private lateinit var detailViewModel: InventoryDetailViewModel
     private lateinit var listViewModel: InventoryListViewModel
     private val testDispatcher = StandardTestDispatcher()
@@ -38,7 +40,7 @@ class InventoryTests {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         detailViewModel = InventoryDetailViewModel(repository)
-        listViewModel = InventoryListViewModel(repository)
+        listViewModel = InventoryListViewModel(repository, tokenStorage)
     }
 
     @After
@@ -63,7 +65,7 @@ class InventoryTests {
     @Test
     fun `test Branch filtering assertions`() = runTest {
         val branchId = UUID.randomUUID()
-        listViewModel = InventoryListViewModel(repository)
+        listViewModel = InventoryListViewModel(repository, tokenStorage)
         coEvery { repository.getInventoryListPaging(any(), any(), any()) } returns flowOf(PagingData.empty())
 
         // Simulating branch filter update via the viewModel structure (if available) or verifying contract.
