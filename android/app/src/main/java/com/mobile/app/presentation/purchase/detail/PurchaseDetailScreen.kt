@@ -7,6 +7,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 
+import androidx.compose.ui.platform.LocalContext
+import com.mobile.app.core.utils.PdfGenerator
+import com.mobile.app.core.utils.ShareUtils
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Share
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PurchaseDetailScreen(
@@ -14,6 +20,7 @@ fun PurchaseDetailScreen(
     viewModel: PurchaseDetailViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit
 ) {
+    val context = LocalContext.current
     val purchase by viewModel.purchase.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
@@ -41,6 +48,22 @@ fun PurchaseDetailScreen(
                     Text("Final Price: ₹${purchase!!.finalPrice}")
                     
                     Spacer(modifier = Modifier.height(16.dp))
+                    
+                    OutlinedButton(
+                        onClick = {
+                            val file = PdfGenerator.generateReceiptPdf(context, purchase!!)
+                            if (file != null) {
+                                ShareUtils.sharePdf(context, file)
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Rounded.Share, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Share Receipt (WhatsApp)")
+                    }
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
                     
                     if (purchase!!.status != com.mobile.app.domain.model.purchase.PurchaseStatus.COMPLETED && purchase!!.status != com.mobile.app.domain.model.purchase.PurchaseStatus.CANCELLED) {
                         Button(onClick = { viewModel.cancelPurchase(purchaseId, "User requested") }, modifier = Modifier.fillMaxWidth()) {

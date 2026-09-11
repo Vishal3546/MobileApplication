@@ -13,10 +13,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.mobile.app.core.ui.components.AppTopBar
+import com.mobile.app.core.ui.components.BarcodeScannerDialog
 import com.mobile.app.core.ui.components.SearchableSelect2Dropdown
 import com.mobile.app.domain.model.device.Device
 import com.mobile.app.domain.model.device.DeviceCatalog
 import com.mobile.app.domain.model.device.DeviceCreate
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.QrCodeScanner
 
 @Composable
 fun CreateDeviceScreen(
@@ -80,6 +83,21 @@ fun DeviceFormContent(
     var imei1 by remember { mutableStateOf("") }
     var imei2 by remember { mutableStateOf("") }
     var serialNumber by remember { mutableStateOf("") }
+    
+    var showScanner by remember { mutableStateOf(false) }
+
+    if (showScanner) {
+        BarcodeScannerDialog(
+            onBarcodeDetected = { scannedImei ->
+                if (scannedImei.length >= 14) { // Basic validation
+                    imei1 = scannedImei.take(15)
+                    onImeiEntered(imei1)
+                    showScanner = false
+                }
+            },
+            onClose = { showScanner = false }
+        )
+    }
 
     // Auto-fill logic when fetchedDevice changes
     LaunchedEffect(fetchedDevice) {
@@ -131,8 +149,14 @@ fun DeviceFormContent(
             shape = RoundedCornerShape(14.dp),
             singleLine = true,
             trailingIcon = {
-                if (isFetchingImei) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                Row {
+                    if (isFetchingImei) {
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+                    IconButton(onClick = { showScanner = true }) {
+                        Icon(Icons.Rounded.QrCodeScanner, contentDescription = "Scan IMEI", tint = MaterialTheme.colorScheme.primary)
+                    }
                 }
             }
         )

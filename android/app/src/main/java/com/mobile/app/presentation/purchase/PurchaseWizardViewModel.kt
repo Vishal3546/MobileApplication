@@ -39,6 +39,9 @@ data class WizardState(
     // Step 5: Customer
     val customerId: String? = null,
     
+    // Pricing Breakdown
+    val pricingBreakdown: PricingBreakdown? = null,
+    
     // Auto-fill data
     val fetchedDeviceDetails: Device? = null,
     val isFetchingImei: Boolean = false,
@@ -142,8 +145,18 @@ class PurchaseWizardViewModel @Inject constructor(
             val result = conditionRepository.createCondition(deviceId, condition)
             result.fold(
                 onSuccess = {
+                    val breakdown = PricingCalculator.calculatePrice(
+                        brand = _wizardState.value.deviceCreate?.brand ?: "",
+                        model = _wizardState.value.deviceCreate?.model ?: "",
+                        inspection = _wizardState.value.inspectionCreate,
+                        condition = condition
+                    )
+                    
                     _wizardState.value = _wizardState.value.copy(
                         conditionCreate = condition,
+                        pricingBreakdown = breakdown,
+                        suggestedPrice = breakdown.basePrice,
+                        finalPrice = breakdown.finalPrice,
                         currentStep = 4,
                         isLoading = false
                     )
