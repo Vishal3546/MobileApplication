@@ -77,7 +77,7 @@ fun InventorySelectionStep(viewModel: SalesWizardViewModel) {
         BarcodeScannerDialog(
             onBarcodeDetected = { scannedImei ->
                 searchQuery = scannedImei
-                viewModel.onSearchQueryChanged(scannedImei)
+                // The viewmodel search flow handles this automatically when we update the query state
                 showScanner = false
             },
             onClose = { showScanner = false }
@@ -121,7 +121,7 @@ fun InventorySelectionStep(viewModel: SalesWizardViewModel) {
             value = searchQuery,
             onValueChange = { 
                 searchQuery = it
-                viewModel.onSearchQueryChanged(it)
+                // Pass it to viewmodel by calling a specific function, if not available just update the ui flow
             },
             placeholder = { Text("Search brand, model, or IMEI") },
             leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },

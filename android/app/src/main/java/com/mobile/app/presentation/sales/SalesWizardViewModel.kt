@@ -61,6 +61,10 @@ class SalesWizardViewModel @Inject constructor(
 
     private val _searchQuery = MutableStateFlow("")
     
+    fun onSearchQueryChanged(query: String) {
+        _searchQuery.value = query
+    }
+    
     // Trigger refresh when search OR selectedBranchId changes
     val availableInventory: Flow<PagingData<Inventory>> = kotlinx.coroutines.flow.combine(
         _searchQuery,
