@@ -106,11 +106,17 @@ dependencies {
     // DataStore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
+    // Coil for image loading
+    implementation("io.coil-kt:coil-compose:2.5.0")
+
     // ML Kit Barcode Scanning
     implementation("com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0")
 
-    // Firebase App Distribution In-App Updates
-    implementation("com.google.firebase:firebase-appdistribution:16.0.0-beta14")
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
+    implementation("com.google.firebase:firebase-messaging-ktx")
+    implementation("com.google.firebase:firebase-analytics-ktx")
+    implementation("com.google.firebase:firebase-appdistribution")
     
     // Room
     implementation("androidx.room:room-runtime:2.6.1")

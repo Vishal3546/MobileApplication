@@ -31,6 +31,7 @@ import com.mobile.app.presentation.device.lifecycle.DeviceLifecycleScreen
 import com.mobile.app.presentation.purchase.BuybackWizardScreen
 import com.mobile.app.presentation.purchase.list.PurchaseListScreen
 import com.mobile.app.presentation.reports.ReportsScreen
+import com.mobile.app.presentation.reports.SendNotificationScreen
 import com.mobile.app.presentation.sales.SalesWizardScreen
 import com.mobile.app.presentation.purchase.create.CreatePurchaseScreen
 import com.mobile.app.presentation.purchase.detail.PurchaseDetailScreen
@@ -102,7 +103,14 @@ fun AppNavigation(
                 onNavigateToCreateUser = { navController.navigate("userCreate") },
                 onNavigateToBuyback = { navController.navigate("buybackWizard") },
                 onNavigateToReports = { navController.navigate("reports") },
-                onNavigateToSell = { navController.navigate("salesWizard") }
+                onNavigateToSell = { navController.navigate("salesWizard") },
+                onNavigateToNotifications = { navController.navigate("sendNotification") }
+            )
+        }
+
+        composable("sendNotification") {
+            SendNotificationScreen(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 

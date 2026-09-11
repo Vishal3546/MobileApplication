@@ -62,7 +62,7 @@ fun ReportsScreen(
                         },
                         selected = selectedRange == range
                     ) {
-                        Text(range.lowercase().capitalize())
+                        Text(range.lowercase().replaceFirstChar { it.uppercase() })
                     }
                 }
             }

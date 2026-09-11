@@ -1,7 +1,7 @@
 package com.mobile.app.presentation.dashboard
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -9,8 +9,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -28,7 +26,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.mobile.app.core.ui.components.AppTopBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,251 +42,212 @@ fun DashboardScreen(
     onNavigateToCreateUser: () -> Unit = {},
     onNavigateToBuyback: () -> Unit = {},
     onNavigateToReports: () -> Unit = {},
-    onNavigateToSell: () -> Unit = {}
+    onNavigateToSell: () -> Unit = {},
+    onNavigateToNotifications: () -> Unit = {}
 ) {
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { visible = true }
+
     Scaffold(
-        topBar = {
-            AppTopBar(
-                title = "Dashboard",
-                onLogoutClick = onLogout
-            )
-        },
-        bottomBar = {
-            DashboardBottomNav()
-        },
-        containerColor = MaterialTheme.colorScheme.background
+        bottomBar = { DashboardBottomNav() },
+        containerColor = Color(0xFFF8FAFC) // Very light slate
     ) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // 1. Welcome & Summary Section
+            // 1. Premium Header (Glassmorphic feel)
             item {
-                Column {
-                    Text(
-                        text = "Hello, ${if (isSuperAdmin) "Admin" else "Partner"}",
-                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold),
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Text(
-                        text = "Here's what's happening today",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                    )
+                AnimatedVisibility(
+                    visible = visible,
+                    enter = fadeIn() + slideInVertically()
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = "Welcome back,",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = Color.Gray
+                            )
+                            Text(
+                                text = if (isSuperAdmin) "Admin" else "Store Manager",
+                                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Black),
+                                color = Color(0xFF1E293B)
+                            )
+                        }
+                        IconButton(
+                            onClick = onLogout,
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(Color.White)
+                                .border(1.dp, Color(0xFFE2E8F0), CircleShape)
+                        ) {
+                            Icon(Icons.Rounded.Logout, contentDescription = null, tint = Color.Red)
+                        }
+                    }
                 }
             }
 
-            // 2. High-Impact KPI Cards
+            // 2. Main KPI - High Performance Look
             item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                AnimatedVisibility(
+                    visible = visible,
+                    enter = fadeIn(animationSpec = tween(600)) + expandVertically()
                 ) {
-                    KPICard(
-                        title = "Total Sales",
-                        value = "₹45,230",
-                        icon = Icons.Rounded.TrendingUp,
-                        color = Color(0xFF4F46E5),
-                        modifier = Modifier.weight(1f)
-                    )
-                    KPICard(
-                        title = "Active Stock",
-                        value = "128",
-                        icon = Icons.Rounded.Inventory,
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(180.dp)
+                            .clip(RoundedCornerShape(32.dp))
+                            .background(
+                                brush = Brush.linearGradient(
+                                    colors = listOf(Color(0xFF4F46E5), Color(0xFF7C3AED))
+                                )
+                            )
+                            .padding(24.dp)
+                    ) {
+                        Column(modifier = Modifier.align(Alignment.CenterStart)) {
+                            Text("Total Portfolio Value", color = Color.White.copy(alpha = 0.7f))
+                            Text("₹12,45,230", style = MaterialTheme.typography.headlineLarge.copy(color = Color.White, fontWeight = FontWeight.Black))
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Surface(
+                                color = Color.White.copy(alpha = 0.2f),
+                                shape = RoundedCornerShape(100.dp)
+                            ) {
+                                Text(
+                                    "+12.5% this month",
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.labelMedium
+                                )
+                            }
+                        }
+                        Icon(
+                            Icons.Rounded.Assessment,
+                            contentDescription = null,
+                            modifier = Modifier.size(100.dp).align(Alignment.CenterEnd).graphicsLayer { alpha = 0.1f },
+                            tint = Color.White
+                        )
+                    }
+                }
+            }
+
+            // 3. Dual Action Banners
+            item {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    ActionBanner(
+                        title = "Buy",
+                        subtitle = "Device Buyback",
+                        icon = Icons.Rounded.AddShoppingCart,
                         color = Color(0xFF10B981),
+                        onClick = onNavigateToBuyback,
+                        modifier = Modifier.weight(1f)
+                    )
+                    ActionBanner(
+                        title = "Sell",
+                        subtitle = "Direct Sale",
+                        icon = Icons.Rounded.Sell,
+                        color = Color(0xFF3B82F6),
+                        onClick = onNavigateToSell,
                         modifier = Modifier.weight(1f)
                     )
                 }
             }
 
-            // 3. Quick Action Banner
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(140.dp)
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(
-                            brush = Brush.horizontalGradient(
-                                colors = listOf(Color(0xFF6366F1), Color(0xFFA855F7))
-                            )
-                        )
-                        .clickable { onNavigateToBuyback() }
-                        .padding(20.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Ready to buy?",
-                                style = MaterialTheme.typography.titleLarge.copy(color = Color.White, fontWeight = FontWeight.Bold)
-                            )
-                            Text(
-                                text = "Start a new device evaluation now",
-                                style = MaterialTheme.typography.bodyMedium.copy(color = Color.White.copy(alpha = 0.8f))
-                            )
-                        }
-                        Surface(
-                            shape = CircleShape,
-                            color = Color.White.copy(alpha = 0.2f),
-                            modifier = Modifier.size(56.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Rounded.Add,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.padding(12.dp)
-                            )
-                        }
-                    }
-                }
-            }
-
-            // 3.5 Quick Sell Banner
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(140.dp)
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(
-                            brush = Brush.horizontalGradient(
-                                colors = listOf(Color(0xFF10B981), Color(0xFF3B82F6))
-                            )
-                        )
-                        .clickable { onNavigateToSell() }
-                        .padding(20.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Sell a Phone",
-                                style = MaterialTheme.typography.titleLarge.copy(color = Color.White, fontWeight = FontWeight.Bold)
-                            )
-                            Text(
-                                text = "Quickly sell from your inventory",
-                                style = MaterialTheme.typography.bodyMedium.copy(color = Color.White.copy(alpha = 0.8f))
-                            )
-                        }
-                        Surface(
-                            shape = CircleShape,
-                            color = Color.White.copy(alpha = 0.2f),
-                            modifier = Modifier.size(56.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Rounded.PointOfSale,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.padding(12.dp)
-                            )
-                        }
-                    }
-                }
-            }
-
-            // 4. Core Operations Grid
+            // 4. Core Grid
             item {
                 Text(
-                    text = "Core Operations",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    text = "Operational Suite",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1E293B)
                 )
-                
+                Spacer(modifier = Modifier.height(12.dp))
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        OperationCard("Sales", Icons.Rounded.ReceiptLong, Color(0xFFF59E0B), onNavigateToSales, Modifier.weight(1f))
-                        OperationCard("Inventory", Icons.Rounded.Storage, Color(0xFFEC4899), onNavigateToInventory, Modifier.weight(1f))
+                        SquareIconCard("Inventory", Icons.Rounded.Inventory2, Color(0xFFF59E0B), onNavigateToInventory, Modifier.weight(1f))
+                        SquareIconCard("Analytics", Icons.Rounded.BarChart, Color(0xFFEC4899), onNavigateToReports, Modifier.weight(1f))
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        OperationCard("Reports", Icons.Rounded.BarChart, Color(0xFF10B981), onNavigateToReports, Modifier.weight(1f))
-                        OperationCard("Purchases", Icons.Rounded.ShoppingBag, Color(0xFF3B82F6), onNavigateToPurchases, Modifier.weight(1f))
+                        SquareIconCard("Purchases", Icons.Rounded.LibraryAdd, Color(0xFF6366F1), onNavigateToPurchases, Modifier.weight(1f))
+                        SquareIconCard("Catalog", Icons.Rounded.Devices, Color(0xFF8B5CF6), onNavigateToDevices, Modifier.weight(1f))
                     }
                 }
             }
 
-            // 5. Admin Utilities
+            // 5. SuperAdmin Special
             if (isSuperAdmin) {
                 item {
                     Text(
-                        text = "Administration",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        modifier = Modifier.padding(bottom = 8.dp)
+                        text = "System Administration",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1E293B)
                     )
+                    Spacer(modifier = Modifier.height(12.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        OperationCard("Manage Shops", Icons.Rounded.Storefront, Color(0xFF14B8A6), onNavigateToShops, Modifier.weight(1f))
-                        OperationCard("Add User", Icons.Rounded.PersonAdd, Color(0xFFF43F5E), onNavigateToCreateUser, Modifier.weight(1f))
+                        SquareIconCard("Manage Shops", Icons.Rounded.Storefront, Color(0xFF14B8A6), onNavigateToShops, Modifier.weight(1f))
+                        SquareIconCard("Send Alert", Icons.Rounded.NotificationsActive, Color(0xFF8B5CF6), onNavigateToNotifications, Modifier.weight(1f))
                     }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SquareIconCard("Staffing", Icons.Rounded.PersonAddAlt1, Color(0xFFF43F5E), onNavigateToCreateUser, Modifier.fillMaxWidth(0.5f))
                 }
             }
-            
-            item { Spacer(modifier = Modifier.height(20.dp)) }
         }
     }
 }
 
 @Composable
-fun KPICard(title: String, value: String, icon: ImageVector, color: Color, modifier: Modifier = Modifier) {
+fun ActionBanner(title: String, subtitle: String, icon: ImageVector, color: Color, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier
-            .shadow(
-                elevation = 6.dp,
-                shape = RoundedCornerShape(20.dp),
-                spotColor = color.copy(alpha = 0.25f)
-            )
-            .border(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                shape = RoundedCornerShape(20.dp)
-            ),
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surface
+            .height(110.dp)
+            .shadow(12.dp, RoundedCornerShape(24.dp), spotColor = color.copy(alpha = 0.3f))
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(24.dp),
+        color = Color.White
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = color.copy(alpha = 0.1f),
-                    modifier = Modifier.size(32.dp)
-                ) {
-                    Icon(icon, contentDescription = null, tint = color, modifier = Modifier.padding(6.dp))
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(title, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.outline)
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.Center) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(color.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(20.dp))
             }
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(value, style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold))
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(title, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+            Text(subtitle, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
         }
     }
 }
 
 @Composable
-fun OperationCard(title: String, icon: ImageVector, iconColor: Color, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Card(
+fun SquareIconCard(title: String, icon: ImageVector, iconColor: Color, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Surface(
         modifier = modifier
-            .shadow(
-                elevation = 4.dp,
-                shape = RoundedCornerShape(20.dp),
-                spotColor = iconColor.copy(alpha = 0.2f)
-            )
-            .clickable { onClick() },
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+            .aspectRatio(1.2f)
+            .shadow(4.dp, RoundedCornerShape(24.dp), spotColor = Color.Black.copy(alpha = 0.05f))
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(24.dp),
+        color = Color.White
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
             Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(28.dp))
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(title, style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
+            Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = Color(0xFF334155))
         }
     }
 }
@@ -297,12 +255,13 @@ fun OperationCard(title: String, icon: ImageVector, iconColor: Color, onClick: (
 @Composable
 fun DashboardBottomNav() {
     var selectedItem by remember { mutableStateOf(0) }
-    val items = listOf("Home", "Inventory", "Network", "Profile")
-    val icons = listOf(Icons.Rounded.Home, Icons.Rounded.Inventory2, Icons.Rounded.Public, Icons.Rounded.Person)
+    val items = listOf("Home", "Inventory", "Network", "Settings")
+    val icons = listOf(Icons.Rounded.Home, Icons.Rounded.Dashboard, Icons.Rounded.Language, Icons.Rounded.Settings)
     
     NavigationBar(
-        containerColor = MaterialTheme.colorScheme.surface,
-        tonalElevation = 0.dp
+        containerColor = Color.White,
+        tonalElevation = 0.dp,
+        modifier = Modifier.border(1.dp, Color(0xFFF1F5F9), RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)).clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
     ) {
         items.forEachIndexed { index, item ->
             NavigationBarItem(
@@ -311,9 +270,9 @@ fun DashboardBottomNav() {
                 selected = selectedItem == index,
                 onClick = { selectedItem = index },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.primary,
-                    unselectedIconColor = MaterialTheme.colorScheme.outline,
-                    indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                    selectedIconColor = Color(0xFF4F46E5),
+                    unselectedIconColor = Color(0xFF94A3B8),
+                    indicatorColor = Color(0xFFEEF2FF)
                 )
             )
         }
