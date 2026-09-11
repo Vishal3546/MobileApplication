@@ -65,6 +65,7 @@ fun SalesWizardScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InventorySelectionStep(viewModel: SalesWizardViewModel) {
     val uiState by viewModel.uiState.collectAsState()
