@@ -116,7 +116,7 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
     implementation("com.google.firebase:firebase-messaging-ktx")
     implementation("com.google.firebase:firebase-analytics-ktx")
-    implementation("com.google.firebase:firebase-appdistribution")
+    implementation("com.google.firebase:firebase-appdistribution-api:16.0.0-beta14")
     
     // Room
     implementation("androidx.room:room-runtime:2.6.1")
