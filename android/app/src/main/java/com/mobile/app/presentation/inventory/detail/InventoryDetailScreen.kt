@@ -93,7 +93,7 @@ fun InventoryDetailScreen(
                         Text("Information", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                         Spacer(modifier = Modifier.height(12.dp))
                         InfoRow("IMEI Number", inv.imei)
-                        InfoRow("Purchase Price", "₹${inv.purchasePrice}")
+                        InfoRow("Cost Price", "₹${inv.costPrice}")
                         InfoRow("Current Selling Price", "₹${inv.sellingPrice}")
                         InfoRow("Current Status", inv.status)
                     }

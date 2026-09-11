@@ -55,4 +55,15 @@ class InventoryDetailViewModel @Inject constructor(
             }
         }
     }
+
+    fun changeStatus(id: UUID, status: String, reason: String?) {
+        viewModelScope.launch {
+            when (val result = repository.changeStatus(id, status, reason)) {
+                is NetworkState.Success -> _inventory.value = result.data
+                is NetworkState.Error -> _error.value = "Failed to change status: ${result.message}"
+                is NetworkState.Loading -> {}
+                is NetworkState.Offline -> _error.value = "Device is offline"
+            }
+        }
+    }
 }
