@@ -51,8 +51,8 @@ public class DeviceService {
                 .model(request.getModel())
                 .variant(request.getVariant())
                 .color(request.getColor())
-                .storageGb(request.getStorageGb())
-                .ramGb(request.getRamGb())
+                .storageGb(com.buysell.modules.device.mapper.DeviceMapper.parseSize(request.getStorageGb()))
+                .ramGb(com.buysell.modules.device.mapper.DeviceMapper.parseSize(request.getRamGb()))
                 .status(DeviceStatus.ACTIVE)
                 .createdBy(currentUser)
                 .updatedBy(currentUser)
@@ -82,8 +82,8 @@ public class DeviceService {
         if (request.getModel() != null) device.setModel(request.getModel());
         if (request.getVariant() != null) device.setVariant(request.getVariant());
         if (request.getColor() != null) device.setColor(request.getColor());
-        if (request.getStorageGb() != null) device.setStorageGb(request.getStorageGb());
-        if (request.getRamGb() != null) device.setRamGb(request.getRamGb());
+        if (request.getStorageGb() != null) device.setStorageGb(com.buysell.modules.device.mapper.DeviceMapper.parseSize(request.getStorageGb()));
+        if (request.getRamGb() != null) device.setRamGb(com.buysell.modules.device.mapper.DeviceMapper.parseSize(request.getRamGb()));
 
         device.setUpdatedBy(currentUserService.getCurrentUser());
         

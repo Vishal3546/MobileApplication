@@ -27,12 +27,12 @@ public class DeviceMapper {
                 .model(request.getModel())
                 .variant(request.getVariant())
                 .color(request.getColor())
-                .storageGb(parseSize(request.getStorageGb()))
-                .ramGb(parseSize(request.getRamGb()))
+                .storageGb(DeviceMapper.parseSize(request.getStorageGb()))
+                .ramGb(DeviceMapper.parseSize(request.getRamGb()))
                 .build();
     }
 
-    private Integer parseSize(String val) {
+    public static Integer parseSize(String val) {
         if (val == null) return null;
         try {
             return Integer.parseInt(val.replaceAll("[^0-9]", ""));
