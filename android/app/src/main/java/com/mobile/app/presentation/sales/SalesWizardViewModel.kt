@@ -133,8 +133,8 @@ class SalesWizardViewModel @Inject constructor(
                 CreateCustomerRequestDto(firstName, lastName, phone, null, email, null)
             )
             
-            if (customerResult is NetworkState.Success) {
-                val customerId = customerResult.data.id
+            if (customerResult.isSuccess) {
+                val customerId = customerResult.getOrNull()?.id ?: return@launch
                 val inventoryId = _uiState.value.selectedInventory?.id ?: return@launch
                 val branchId = UUID.fromString(getBranchIdFromToken() ?: return@launch)
                 
