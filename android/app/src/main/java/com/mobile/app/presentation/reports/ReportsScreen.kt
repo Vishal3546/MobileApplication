@@ -27,7 +27,7 @@ fun ReportsScreen(
     viewModel: ReportsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var selectedRange by remember { mutableStateOf("DAILY") }
+    var selectedIndex by remember { mutableStateOf(0) }
     val ranges = listOf("DAILY", "MONTHLY", "YEARLY")
 
     Scaffold(
@@ -47,23 +47,40 @@ fun ReportsScreen(
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            // 1. Time Range Selector
-            SingleChoiceSegmentedButtonRow(
+            // 1. Time Range Selector (Using TabRow for better compatibility)
+            TabRow(
+                selectedTabIndex = selectedIndex,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
+                    .clip(RoundedCornerShape(12.dp)),
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                indicator = {},
+                divider = {}
             ) {
                 ranges.forEachIndexed { index, range ->
-                    SegmentedButton(
-                        shape = SegmentedButtonDefaults.itemShape(index = index, count = ranges.size),
-                        onClick = { 
-                            selectedRange = range
+                    Tab(
+                        selected = selectedIndex == index,
+                        onClick = {
+                            selectedIndex = index
                             viewModel.fetchReports(range)
                         },
-                        selected = selectedRange == range
-                    ) {
-                        Text(range.lowercase().replaceFirstChar { it.uppercase() })
-                    }
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(
+                                if (selectedIndex == index) MaterialTheme.colorScheme.primary 
+                                else Color.Transparent
+                            ),
+                        text = {
+                            Text(
+                                text = range.lowercase().replaceFirstChar { it.uppercase() },
+                                color = if (selectedIndex == index) MaterialTheme.colorScheme.onPrimary 
+                                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                        }
+                    )
                 }
             }
 
