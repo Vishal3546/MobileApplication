@@ -21,4 +21,5 @@ interface DeviceRepository {
     suspend fun updateDeviceStatus(id: String, status: DeviceStatus): Result<Device>
     suspend fun verifyImei(id: String): Result<ImeiVerificationResult>
     suspend fun getDeviceLifecycle(id: String): Result<List<com.mobile.app.domain.model.device.DeviceLifecycleEvent>>
+    suspend fun getDeviceInfoByImei(imei: String): Result<Device>
 }

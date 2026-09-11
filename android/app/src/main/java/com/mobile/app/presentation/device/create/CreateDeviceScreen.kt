@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.mobile.app.core.ui.components.AppTopBar
 import com.mobile.app.core.ui.components.SearchableSelect2Dropdown
+import com.mobile.app.domain.model.device.Device
 import com.mobile.app.domain.model.device.DeviceCatalog
 import com.mobile.app.domain.model.device.DeviceCreate
 
@@ -63,6 +64,9 @@ fun CreateDeviceScreen(
 fun DeviceFormContent(
     modifier: Modifier = Modifier,
     isLoading: Boolean = false,
+    isFetchingImei: Boolean = false,
+    fetchedDevice: Device? = null,
+    onImeiEntered: (String) -> Unit = {},
     errorMessage: String? = null,
     buttonText: String = "Save Device Details",
     onSubmit: (DeviceCreate) -> Unit
@@ -76,6 +80,18 @@ fun DeviceFormContent(
     var imei1 by remember { mutableStateOf("") }
     var imei2 by remember { mutableStateOf("") }
     var serialNumber by remember { mutableStateOf("") }
+
+    // Auto-fill logic when fetchedDevice changes
+    LaunchedEffect(fetchedDevice) {
+        fetchedDevice?.let {
+            brand = it.brand
+            model = it.model
+            variant = it.variant ?: ""
+            color = it.color
+            storage = it.storage
+            ram = it.ram
+        }
+    }
 
     val scrollState = rememberScrollState()
 
@@ -93,6 +109,40 @@ fun DeviceFormContent(
             .verticalScroll(scrollState),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        Text(
+            text = "Device Identification",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
+        )
+
+        OutlinedTextField(
+            value = imei1,
+            onValueChange = { 
+                if (it.length <= 15 && it.all { char -> char.isDigit() }) {
+                    imei1 = it
+                    if (it.length == 15) {
+                        onImeiEntered(it)
+                    }
+                }
+            },
+            label = { Text("IMEI 1 (15 Digits) *") },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
+            singleLine = true,
+            trailingIcon = {
+                if (isFetchingImei) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                }
+            }
+        )
+
+        if (isFetchingImei) {
+            Text("Fetching device details...", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+        }
+
+        Divider(modifier = Modifier.padding(vertical = 8.dp))
+
         Text(
             text = "Device Specifications",
             style = MaterialTheme.typography.titleMedium,
@@ -173,28 +223,10 @@ fun DeviceFormContent(
             enabled = model.isNotBlank()
         )
 
-        Divider(modifier = Modifier.padding(vertical = 8.dp))
-
-        Text(
-            text = "Device Identification (IMEI & Serial)",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
-
-        OutlinedTextField(
-            value = imei1,
-            onValueChange = { if (it.length <= 15 && it.all { char -> char.isDigit() }) imei1 = it },
-            label = { Text("IMEI 1 (15 Digits) *") },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(14.dp),
-            singleLine = true
-        )
-
         OutlinedTextField(
             value = imei2,
             onValueChange = { if (it.length <= 15 && it.all { char -> char.isDigit() }) imei2 = it },
-            label = { Text("IMEI 2 (15 Digits - Optional)") },
+            label = { Text("IMEI 2 (Optional)") },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(14.dp),
             singleLine = true

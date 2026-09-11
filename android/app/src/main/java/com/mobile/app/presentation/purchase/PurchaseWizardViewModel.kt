@@ -39,6 +39,10 @@ data class WizardState(
     // Step 5: Customer
     val customerId: String? = null,
     
+    // Auto-fill data
+    val fetchedDeviceDetails: Device? = null,
+    val isFetchingImei: Boolean = false,
+    
     val isLoading: Boolean = false,
     val error: String? = null,
     val isComplete: Boolean = false
@@ -61,6 +65,30 @@ class PurchaseWizardViewModel @Inject constructor(
     fun previousStep() {
         if (_wizardState.value.currentStep > 1) {
             _wizardState.value = _wizardState.value.copy(currentStep = _wizardState.value.currentStep - 1)
+        }
+    }
+
+    // --- IMEI Lookup ---
+    fun fetchDeviceDetails(imei: String) {
+        if (imei.length < 15) return
+        
+        viewModelScope.launch {
+            _wizardState.value = _wizardState.value.copy(isFetchingImei = true, error = null)
+            val result = deviceRepository.getDeviceInfoByImei(imei)
+            result.fold(
+                onSuccess = { device ->
+                    _wizardState.value = _wizardState.value.copy(
+                        fetchedDeviceDetails = device,
+                        isFetchingImei = false
+                    )
+                },
+                onFailure = { e ->
+                    _wizardState.value = _wizardState.value.copy(
+                        isFetchingImei = false,
+                        error = "Could not find device for this IMEI: ${e.message}"
+                    )
+                }
+            )
         }
     }
 

@@ -64,6 +64,9 @@ fun BuybackWizardScreen(
                     DeviceFormContent(
                         buttonText = "Next: Functional Test",
                         isLoading = wizardState.isLoading,
+                        isFetchingImei = wizardState.isFetchingImei,
+                        fetchedDevice = wizardState.fetchedDeviceDetails,
+                        onImeiEntered = { viewModel.fetchDeviceDetails(it) },
                         errorMessage = wizardState.error,
                         onSubmit = { viewModel.submitDeviceInfo(it) }
                     )

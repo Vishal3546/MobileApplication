@@ -49,4 +49,7 @@ interface DeviceApi {
 
     @GET("api/v1/devices/{id}/lifecycle")
     suspend fun getDeviceLifecycle(@Path("id") id: String): List<DeviceLifecycleEventDto>
+
+    @GET("api/v1/devices/lookup/{imei}")
+    suspend fun getDeviceInfoByImei(@Path("imei") imei: String): DeviceDto
 }

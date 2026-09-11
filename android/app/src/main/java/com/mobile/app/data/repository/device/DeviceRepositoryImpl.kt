@@ -120,6 +120,15 @@ class DeviceRepositoryImpl(
             Result.failure(e)
         }
     }
+
+    override suspend fun getDeviceInfoByImei(imei: String): Result<Device> {
+        return try {
+            val response = api.getDeviceInfoByImei(imei)
+            Result.success(DeviceMapper.mapToDomain(response))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
 
 class DevicePagingSource(
