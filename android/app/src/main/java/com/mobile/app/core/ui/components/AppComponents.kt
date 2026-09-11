@@ -92,8 +92,7 @@ fun AppCard(
         Column(
             modifier = Modifier.padding(20.dp),
             content = content
-        ) {
-        }
+        )
     }
 }
 
