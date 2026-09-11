@@ -23,47 +23,70 @@ class InventoryDetailViewModel @Inject constructor(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
+
     fun loadInventory(id: UUID) {
         viewModelScope.launch {
+            _isLoading.value = true
             when (val result = repository.getInventoryById(id)) {
-                is NetworkState.Success -> _inventory.value = result.data
+                is NetworkState.Success -> {
+                    _inventory.value = result.data
+                    _error.value = null
+                }
                 is NetworkState.Error -> _error.value = result.message
                 is NetworkState.Loading -> {}
                 is NetworkState.Offline -> _error.value = "Device is offline"
             }
+            _isLoading.value = false
         }
     }
 
     fun reserveInventory(id: UUID) {
         viewModelScope.launch {
+            _isLoading.value = true
             when (val result = repository.reserveInventory(id, null, "Reserved from Android App")) {
-                is NetworkState.Success -> _inventory.value = result.data
+                is NetworkState.Success -> {
+                    _inventory.value = result.data
+                    _error.value = null
+                }
                 is NetworkState.Error -> _error.value = "Failed to reserve: ${result.message}"
                 is NetworkState.Loading -> {}
                 is NetworkState.Offline -> _error.value = "Device is offline"
             }
+            _isLoading.value = false
         }
     }
 
     fun releaseInventory(id: UUID) {
         viewModelScope.launch {
+            _isLoading.value = true
             when (val result = repository.releaseInventory(id)) {
-                is NetworkState.Success -> _inventory.value = result.data
+                is NetworkState.Success -> {
+                    _inventory.value = result.data
+                    _error.value = null
+                }
                 is NetworkState.Error -> _error.value = "Failed to release: ${result.message}"
                 is NetworkState.Loading -> {}
                 is NetworkState.Offline -> _error.value = "Device is offline"
             }
+            _isLoading.value = false
         }
     }
 
     fun changeStatus(id: UUID, status: String, reason: String?) {
         viewModelScope.launch {
+            _isLoading.value = true
             when (val result = repository.changeStatus(id, status, reason)) {
-                is NetworkState.Success -> _inventory.value = result.data
+                is NetworkState.Success -> {
+                    _inventory.value = result.data
+                    _error.value = null
+                }
                 is NetworkState.Error -> _error.value = "Failed to change status: ${result.message}"
                 is NetworkState.Loading -> {}
                 is NetworkState.Offline -> _error.value = "Device is offline"
             }
+            _isLoading.value = false
         }
     }
 }
