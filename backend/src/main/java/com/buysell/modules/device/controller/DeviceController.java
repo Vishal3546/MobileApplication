@@ -73,6 +73,14 @@ public class DeviceController {
                 .map(deviceMapper::toSummaryResponse);
     }
 
+    @GetMapping("/lookup/{imei}")
+    @PreAuthorize("hasAuthority('VIEW_DEVICES')")
+    @Operation(summary = "Lookup device by IMEI")
+    public DeviceResponse getDeviceByImei(@PathVariable String imei) {
+        Device device = deviceService.getDeviceByImei(imei);
+        return deviceMapper.toResponse(device);
+    }
+
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasAuthority('BLOCK_DEVICE')")
     @Operation(summary = "Block or unblock a device")

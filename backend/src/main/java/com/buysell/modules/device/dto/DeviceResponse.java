@@ -18,9 +18,12 @@ public class DeviceResponse {
     private String model;
     private String variant;
     private String color;
-    private Integer storageGb;
-    private Integer ramGb;
+    private String storage; // Changed to String for frontend compatibility
+    private String ram;     // Changed to String for frontend compatibility
     private DeviceStatus status;
+    private UUID branchId;
+    private String verificationState;
+    private Integer mediaCount;
     private UUID createdBy;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;

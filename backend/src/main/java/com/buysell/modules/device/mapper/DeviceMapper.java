@@ -8,6 +8,8 @@ import com.buysell.security.CurrentUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Component
 @RequiredArgsConstructor
 public class DeviceMapper {
@@ -25,9 +27,18 @@ public class DeviceMapper {
                 .model(request.getModel())
                 .variant(request.getVariant())
                 .color(request.getColor())
-                .storageGb(request.getStorageGb())
-                .ramGb(request.getRamGb())
+                .storageGb(parseSize(request.getStorageGb()))
+                .ramGb(parseSize(request.getRamGb()))
                 .build();
+    }
+
+    private Integer parseSize(String val) {
+        if (val == null) return null;
+        try {
+            return Integer.parseInt(val.replaceAll("[^0-9]", ""));
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public DeviceResponse toResponse(Device device) {
@@ -44,9 +55,11 @@ public class DeviceMapper {
                 .model(device.getModel())
                 .variant(device.getVariant())
                 .color(device.getColor())
-                .storageGb(device.getStorageGb())
-                .ramGb(device.getRamGb())
+                .storage(device.getStorageGb() != null ? device.getStorageGb() + " GB" : "N/A")
+                .ram(device.getRamGb() != null ? device.getRamGb() + " GB" : "N/A")
                 .status(device.getStatus())
+                .verificationState("VERIFIED") // Default for now
+                .mediaCount(0) // Placeholder
                 .createdBy(device.getCreatedBy() != null ? device.getCreatedBy().getId() : null)
                 .createdAt(device.getCreatedAt())
                 .updatedAt(device.getUpdatedAt())
@@ -71,9 +84,8 @@ public class DeviceMapper {
         if (imei == null || imei.isEmpty()) return imei;
         if (canViewFull) return imei;
 
-        // Masking: ***********3809 (keep last 4 digits)
         if (imei.length() <= 4) {
-            return "****"; // Edge case
+            return "****";
         }
         
         return "*".repeat(imei.length() - 4) + imei.substring(imei.length() - 4);

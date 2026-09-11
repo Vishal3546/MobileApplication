@@ -111,6 +111,12 @@ public class DeviceService {
         return deviceRepository.searchDevices(imei, brand, model, pageable);
     }
 
+    @Transactional(readOnly = true)
+    public Device getDeviceByImei(String imei) {
+        return deviceRepository.findByImei(imei)
+                .orElseThrow(() -> new ResourceNotFoundException("Device", "imei", imei));
+    }
+
     @Transactional
     public void updateDeviceStatus(UUID id, DeviceStatus status) {
         Device device = getDeviceById(id);

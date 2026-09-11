@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.pdf.PdfDocument
 import com.mobile.app.domain.model.purchase.Purchase
+import com.mobile.app.domain.model.sales.SaleTransaction
 import java.io.File
 import java.io.FileOutputStream
 import java.time.format.DateTimeFormatter
@@ -70,6 +71,60 @@ object PdfGenerator {
             pdfDocument.close()
         }
 
+        return filePath
+    }
+
+    fun generateSaleInvoicePdf(context: Context, sale: SaleTransaction): File? {
+        val pdfDocument = PdfDocument()
+        val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create()
+        val page = pdfDocument.startPage(pageInfo)
+        val canvas: Canvas = page.canvas
+        val paint = Paint()
+
+        // Header
+        paint.textSize = 22f
+        paint.color = Color.BLACK
+        paint.isFakeBoldText = true
+        canvas.drawText("SALES INVOICE", 50f, 50f, paint)
+
+        paint.textSize = 12f
+        paint.isFakeBoldText = false
+        canvas.drawText("Invoice #: ${sale.saleNumber}", 50f, 80f, paint)
+        canvas.drawText("Date: ${sale.createdAt}", 50f, 100f, paint)
+
+        canvas.drawLine(50f, 120f, 545f, 120f, paint)
+
+        // Customer
+        paint.isFakeBoldText = true
+        canvas.drawText("Billed To:", 50f, 150f, paint)
+        paint.isFakeBoldText = false
+        canvas.drawText("Customer ID: ${sale.customerId}", 50f, 170f, paint)
+
+        // Item
+        paint.isFakeBoldText = true
+        canvas.drawText("Description", 50f, 220f, paint)
+        canvas.drawText("Amount", 450f, 220f, paint)
+        paint.isFakeBoldText = false
+        canvas.drawText("${sale.inventoryItem?.brand} ${sale.inventoryItem?.model}", 50f, 245f, paint)
+        canvas.drawText("₹${sale.finalAmount}", 450f, 245f, paint)
+
+        canvas.drawLine(50f, 270f, 545f, 270f, paint)
+
+        // Totals
+        paint.isFakeBoldText = true
+        canvas.drawText("Total Amount:", 350f, 300f, paint)
+        canvas.drawText("₹${sale.finalAmount}", 450f, 300f, paint)
+
+        pdfDocument.finishPage(page)
+
+        val filePath = File(context.cacheDir, "Invoice_${sale.saleNumber}.pdf")
+        try {
+            pdfDocument.writeTo(FileOutputStream(filePath))
+        } catch (e: Exception) {
+            return null
+        } finally {
+            pdfDocument.close()
+        }
         return filePath
     }
 }

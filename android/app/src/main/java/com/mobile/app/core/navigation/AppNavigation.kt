@@ -30,6 +30,8 @@ import com.mobile.app.presentation.device.verification.ImeiVerificationScreen
 import com.mobile.app.presentation.device.lifecycle.DeviceLifecycleScreen
 import com.mobile.app.presentation.purchase.BuybackWizardScreen
 import com.mobile.app.presentation.purchase.list.PurchaseListScreen
+import com.mobile.app.presentation.reports.ReportsScreen
+import com.mobile.app.presentation.sales.SalesWizardScreen
 import com.mobile.app.presentation.purchase.create.CreatePurchaseScreen
 import com.mobile.app.presentation.purchase.detail.PurchaseDetailScreen
 import com.mobile.app.presentation.purchase.steps.PurchasePaymentScreen
@@ -98,7 +100,26 @@ fun AppNavigation(
                 onNavigateToSettlements = { navController.navigate("settlementList") },
                 onNavigateToShops = { navController.navigate("shopList") },
                 onNavigateToCreateUser = { navController.navigate("userCreate") },
-                onNavigateToBuyback = { navController.navigate("buybackWizard") }
+                onNavigateToBuyback = { navController.navigate("buybackWizard") },
+                onNavigateToReports = { navController.navigate("reports") },
+                onNavigateToSell = { navController.navigate("salesWizard") }
+            )
+        }
+
+        composable("salesWizard") {
+            SalesWizardScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onComplete = {
+                    navController.navigate("saleList") {
+                        popUpTo("dashboard")
+                    }
+                }
+            )
+        }
+
+        composable("reports") {
+            ReportsScreen(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 

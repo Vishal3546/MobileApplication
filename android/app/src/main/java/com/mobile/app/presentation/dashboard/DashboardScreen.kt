@@ -43,7 +43,9 @@ fun DashboardScreen(
     onNavigateToSettlements: () -> Unit = {},
     onNavigateToShops: () -> Unit = {},
     onNavigateToCreateUser: () -> Unit = {},
-    onNavigateToBuyback: () -> Unit = {}
+    onNavigateToBuyback: () -> Unit = {},
+    onNavigateToReports: () -> Unit = {},
+    onNavigateToSell: () -> Unit = {}
 ) {
     Scaffold(
         topBar = {
@@ -149,6 +151,52 @@ fun DashboardScreen(
                 }
             }
 
+            // 3.5 Quick Sell Banner
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(140.dp)
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(
+                            brush = Brush.horizontalGradient(
+                                colors = listOf(Color(0xFF10B981), Color(0xFF3B82F6))
+                            )
+                        )
+                        .clickable { onNavigateToSell() }
+                        .padding(20.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Sell a Phone",
+                                style = MaterialTheme.typography.titleLarge.copy(color = Color.White, fontWeight = FontWeight.Bold)
+                            )
+                            Text(
+                                text = "Quickly sell from your inventory",
+                                style = MaterialTheme.typography.bodyMedium.copy(color = Color.White.copy(alpha = 0.8f))
+                            )
+                        }
+                        Surface(
+                            shape = CircleShape,
+                            color = Color.White.copy(alpha = 0.2f),
+                            modifier = Modifier.size(56.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.PointOfSale,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.padding(12.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
             // 4. Core Operations Grid
             item {
                 Text(
@@ -163,8 +211,8 @@ fun DashboardScreen(
                         OperationCard("Inventory", Icons.Rounded.Storage, Color(0xFFEC4899), onNavigateToInventory, Modifier.weight(1f))
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        OperationCard("Reports", Icons.Rounded.BarChart, Color(0xFF10B981), onNavigateToReports, Modifier.weight(1f))
                         OperationCard("Purchases", Icons.Rounded.ShoppingBag, Color(0xFF3B82F6), onNavigateToPurchases, Modifier.weight(1f))
-                        OperationCard("Devices", Icons.Rounded.PhoneAndroid, Color(0xFF8B5CF6), onNavigateToDevices, Modifier.weight(1f))
                     }
                 }
             }
