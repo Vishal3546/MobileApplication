@@ -49,11 +49,15 @@ fun DirectInAppUpdateDialog(
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
             try {
-                val url = URL(versionInfoUrl)
+                val cacheBustUrl = if (versionInfoUrl.contains("?")) "$versionInfoUrl&t=${System.currentTimeMillis()}" else "$versionInfoUrl?t=${System.currentTimeMillis()}"
+                val url = URL(cacheBustUrl)
                 val connection = url.openConnection() as HttpURLConnection
                 connection.connectTimeout = 5000
                 connection.readTimeout = 5000
                 connection.requestMethod = "GET"
+                connection.useCaches = false
+                connection.setRequestProperty("Cache-Control", "no-cache, no-store, must-revalidate")
+                connection.setRequestProperty("Pragma", "no-cache")
 
                 if (connection.responseCode == 200) {
                     val jsonStr = connection.inputStream.bufferedReader().use { it.readText() }
