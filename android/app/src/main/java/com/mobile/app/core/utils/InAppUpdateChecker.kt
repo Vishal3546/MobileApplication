@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -76,11 +77,22 @@ fun DirectInAppUpdateDialog(
                         )
                         withContext(Dispatchers.Main) {
                             showDialog = true
+                            Toast.makeText(context, "Update logic triggered (Server: $serverVersionCode, Local: ${BuildConfig.VERSION_CODE})", Toast.LENGTH_LONG).show()
                         }
+                    } else {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(context, "Up to date. Server: $serverVersionCode, Local: ${BuildConfig.VERSION_CODE}", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "Update check failed: Response Code ${connection.responseCode}", Toast.LENGTH_LONG).show()
                     }
                 }
             } catch (e: Exception) {
-                // Silently ignore network errors during background update check
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Update check error: ${e.message}", Toast.LENGTH_LONG).show()
+                }
             }
         }
     }

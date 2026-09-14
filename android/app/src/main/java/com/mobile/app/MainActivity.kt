@@ -1,6 +1,7 @@
 package com.mobile.app
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.mobile.app.core.navigation.AppNavigation
