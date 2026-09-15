@@ -32,6 +32,15 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("release.keystore")
+            storePassword = "release_password"
+            keyAlias = "release_key"
+            keyPassword = "release_password"
+        }
+    }
+
     buildTypes {
         release {
             buildConfigField("String", "API_BASE_URL", "\"https://mobileapplication-qtau.onrender.com/\"")
@@ -41,6 +50,10 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
+        }
+        debug {
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
