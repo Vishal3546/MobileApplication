@@ -34,6 +34,7 @@ fun CreateDeviceScreen(
     val models by viewModel.models.collectAsState()
     val fetchedDevice by viewModel.fetchedDevice.collectAsState()
     val isFetchingImei by viewModel.isFetchingImei.collectAsState()
+    val isFetchingModels by viewModel.isFetchingModels.collectAsState()
 
     LaunchedEffect(uiState) {
         if (uiState is CreateDeviceUiState.Success) {
@@ -53,6 +54,7 @@ fun CreateDeviceScreen(
             modifier = Modifier.padding(padding),
             isLoading = uiState is CreateDeviceUiState.Loading,
             isFetchingImei = isFetchingImei,
+            isFetchingModels = isFetchingModels,
             fetchedDevice = fetchedDevice,
             availableModels = models,
             onBrandSelected = { brand ->
@@ -83,6 +85,7 @@ fun DeviceFormContent(
     modifier: Modifier = Modifier,
     isLoading: Boolean = false,
     isFetchingImei: Boolean = false,
+    isFetchingModels: Boolean = false,
     fetchedDevice: Device? = null,
     availableModels: List<ModelInfo> = emptyList(),
     onBrandSelected: (String) -> Unit = {},
@@ -161,12 +164,20 @@ fun DeviceFormContent(
                 }
             }
             1 -> { // Model Selection
-                Text(
-                    "Select $brand Model",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
+                Row(
                     modifier = Modifier.padding(16.dp),
-                )
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Select $brand Model",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    if (isFetchingModels) {
+                        Spacer(modifier = Modifier.width(16.dp))
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                    }
+                }
                 val models = availableModels.ifEmpty { DeviceCatalog.modelsByBrand[brand] ?: emptyList() }
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),

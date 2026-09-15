@@ -33,16 +33,25 @@ class CreateDeviceViewModel @Inject constructor(
     private val _isFetchingImei = MutableStateFlow(value = false)
     val isFetchingImei: StateFlow<Boolean> = _isFetchingImei.asStateFlow()
 
+    private val _isFetchingModels = MutableStateFlow(value = false)
+    val isFetchingModels: StateFlow<Boolean> = _isFetchingModels.asStateFlow()
+
     fun loadModelsForBrand(brand: String) {
+        // Clear previous models so we don't show old list, show fallback momentarily or empty
         val fallback = DeviceCatalog.modelsByBrand[brand] ?: emptyList()
         _models.value = fallback
+        _isFetchingModels.value = true
+        
         viewModelScope.launch {
             val result = phoneSpecsRepository.getModelsForBrand(brand)
             result.onSuccess { liveModels ->
                 if (liveModels.isNotEmpty()) {
                     _models.value = liveModels
                 }
+            }.onFailure {
+                // Keep fallback on failure
             }
+            _isFetchingModels.value = false
         }
     }
 

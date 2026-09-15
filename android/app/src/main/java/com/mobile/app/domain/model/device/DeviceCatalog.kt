@@ -34,23 +34,23 @@ object DeviceCatalog {
 
     val modelsByBrand: Map<String, List<ModelInfo>> = mapOf(
         "Apple" to listOf(
-            ModelInfo("iPhone 15 Pro Max", "https://fdn2.gsmarena.com/videolib/cp/apple-iphone-15-pro-max.jpg"),
-            ModelInfo("iPhone 15 Pro", "https://fdn2.gsmarena.com/vv/bigpic/apple-iphone-15-pro.jpg"),
-            ModelInfo("iPhone 14 Pro Max", "https://fdn2.gsmarena.com/vv/bigpic/apple-iphone-14-pro-max.jpg"),
-            ModelInfo("iPhone 13", "https://fdn2.gsmarena.com/vv/bigpic/apple-iphone-13.jpg")
+            ModelInfo("iPhone 15 Pro Max", "https://wsrv.nl/?url=https://fdn2.gsmarena.com/videolib/cp/apple-iphone-15-pro-max.jpg"),
+            ModelInfo("iPhone 15 Pro", "https://wsrv.nl/?url=https://fdn2.gsmarena.com/vv/bigpic/apple-iphone-15-pro.jpg"),
+            ModelInfo("iPhone 14 Pro Max", "https://wsrv.nl/?url=https://fdn2.gsmarena.com/vv/bigpic/apple-iphone-14-pro-max.jpg"),
+            ModelInfo("iPhone 13", "https://wsrv.nl/?url=https://fdn2.gsmarena.com/vv/bigpic/apple-iphone-13.jpg")
         ),
         "Samsung" to listOf(
-            ModelInfo("Galaxy S24 Ultra", "https://fdn2.gsmarena.com/vv/bigpic/samsung-galaxy-s24-ultra-5g.jpg"),
-            ModelInfo("Galaxy Z Fold 5", "https://fdn2.gsmarena.com/vv/bigpic/samsung-galaxy-z-fold5.jpg"),
-            ModelInfo("Galaxy A55", "https://fdn2.gsmarena.com/vv/bigpic/samsung-galaxy-a55.jpg")
+            ModelInfo("Galaxy S24 Ultra", "https://wsrv.nl/?url=https://fdn2.gsmarena.com/vv/bigpic/samsung-galaxy-s24-ultra-5g.jpg"),
+            ModelInfo("Galaxy Z Fold 5", "https://wsrv.nl/?url=https://fdn2.gsmarena.com/vv/bigpic/samsung-galaxy-z-fold5.jpg"),
+            ModelInfo("Galaxy A55", "https://wsrv.nl/?url=https://fdn2.gsmarena.com/vv/bigpic/samsung-galaxy-a55.jpg")
         ),
         "OnePlus" to listOf(
-            ModelInfo("OnePlus 12", "https://fdn2.gsmarena.com/vv/bigpic/oneplus-12.jpg"),
-            ModelInfo("OnePlus Open", "https://fdn2.gsmarena.com/vv/bigpic/oneplus-open.jpg")
+            ModelInfo("OnePlus 12", "https://wsrv.nl/?url=https://fdn2.gsmarena.com/vv/bigpic/oneplus-12.jpg"),
+            ModelInfo("OnePlus Open", "https://wsrv.nl/?url=https://fdn2.gsmarena.com/vv/bigpic/oneplus-open.jpg")
         ),
         "Google" to listOf(
-            ModelInfo("Pixel 8 Pro", "https://fdn2.gsmarena.com/vv/bigpic/google-pixel-8-pro.jpg"),
-            ModelInfo("Pixel 7a", "https://fdn2.gsmarena.com/vv/bigpic/google-pixel-7a.jpg")
+            ModelInfo("Pixel 8 Pro", "https://wsrv.nl/?url=https://fdn2.gsmarena.com/vv/bigpic/google-pixel-8-pro.jpg"),
+            ModelInfo("Pixel 7a", "https://wsrv.nl/?url=https://fdn2.gsmarena.com/vv/bigpic/google-pixel-7a.jpg")
         )
     )
 

@@ -73,8 +73,8 @@ class PhoneSpecsRepositoryImpl @Inject constructor(
                 val response = phoneSpecsApi.getPhonesByBrand(brandSlug)
                 val phones = response.data?.phones?.map { dto ->
                     ModelInfo(
-                        name = dto.phoneName ?: "Unknown",
-                        imageUrl = dto.image ?: "",
+                        name = dto.phoneName?.trim() ?: "Unknown",
+                        imageUrl = dto.image?.let { "https://wsrv.nl/?url=$it" } ?: "",
                     )
                 } ?: emptyList()
                 Result.success(phones)
