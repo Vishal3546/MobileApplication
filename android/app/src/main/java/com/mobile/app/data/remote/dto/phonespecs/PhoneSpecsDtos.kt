@@ -17,6 +17,13 @@ data class SearchData(
     @SerializedName("phones") val phones: List<PhoneSummaryDto>?,
 )
 
+data class BrandPhonesData(
+    @SerializedName("title") val title: String?,
+    @SerializedName("current_page") val currentPage: Int?,
+    @SerializedName("last_page") val lastPage: Int?,
+    @SerializedName("phones") val phones: List<PhoneSummaryDto>?,
+)
+
 data class PhoneSummaryDto(
     @SerializedName("brand") val brand: String?,
     @SerializedName("phone_name") val phoneName: String?,

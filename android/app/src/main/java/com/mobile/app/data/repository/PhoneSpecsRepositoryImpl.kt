@@ -61,6 +61,31 @@ class PhoneSpecsRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getModelsForBrand(brand: String): Result<List<ModelInfo>> {
+        return try {
+            // First get brands to find the slug
+            val brandsResponse = phoneSpecsApi.getBrands()
+            val brandSlug = brandsResponse.data?.find { 
+                it.brandName?.equals(brand, ignoreCase = true) == true 
+            }?.brandSlug
+            
+            if (brandSlug != null) {
+                val response = phoneSpecsApi.getPhonesByBrand(brandSlug)
+                val phones = response.data?.phones?.map { dto ->
+                    ModelInfo(
+                        name = dto.phoneName ?: "Unknown",
+                        imageUrl = dto.image ?: "",
+                    )
+                } ?: emptyList()
+                Result.success(phones)
+            } else {
+                Result.success(emptyList())
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     override suspend fun getPhoneDetails(slug: String): Result<PhoneSpecDetail> {
         return try {
             val response = phoneSpecsApi.getPhoneDetails(slug)

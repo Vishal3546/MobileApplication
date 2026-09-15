@@ -1,6 +1,7 @@
 package com.mobile.app.data.remote.api
 
 import com.mobile.app.data.remote.dto.phonespecs.BrandDto
+import com.mobile.app.data.remote.dto.phonespecs.BrandPhonesData
 import com.mobile.app.data.remote.dto.phonespecs.LatestData
 import com.mobile.app.data.remote.dto.phonespecs.PhoneApiResponse
 import com.mobile.app.data.remote.dto.phonespecs.PhoneDetailData
@@ -21,4 +22,7 @@ interface PhoneSpecsApi {
 
     @GET("brands")
     suspend fun getBrands(): PhoneApiResponse<List<BrandDto>>
+
+    @GET("brands/{brand_slug}")
+    suspend fun getPhonesByBrand(@Path("brand_slug") brandSlug: String): PhoneApiResponse<BrandPhonesData>
 }

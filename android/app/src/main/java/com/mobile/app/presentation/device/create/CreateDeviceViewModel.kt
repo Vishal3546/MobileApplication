@@ -37,7 +37,7 @@ class CreateDeviceViewModel @Inject constructor(
         val fallback = DeviceCatalog.modelsByBrand[brand] ?: emptyList()
         _models.value = fallback
         viewModelScope.launch {
-            val result = phoneSpecsRepository.searchPhone(brand)
+            val result = phoneSpecsRepository.getModelsForBrand(brand)
             result.onSuccess { liveModels ->
                 if (liveModels.isNotEmpty()) {
                     _models.value = liveModels
