@@ -5,10 +5,13 @@ import com.mobile.app.data.remote.api.DeviceConditionApi
 import com.mobile.app.data.remote.api.DeviceInspectionApi
 import com.mobile.app.data.remote.api.DeviceMediaApi
 import com.mobile.app.data.remote.api.MediaApi
+import com.mobile.app.data.remote.api.PhoneSpecsApi
+import com.mobile.app.data.repository.PhoneSpecsRepositoryImpl
 import com.mobile.app.data.repository.device.DeviceConditionRepositoryImpl
 import com.mobile.app.data.repository.device.DeviceInspectionRepositoryImpl
 import com.mobile.app.data.repository.device.DeviceMediaRepositoryImpl
 import com.mobile.app.data.repository.device.DeviceRepositoryImpl
+import com.mobile.app.domain.repository.PhoneSpecsRepository
 import com.mobile.app.domain.repository.device.DeviceConditionRepository
 import com.mobile.app.domain.repository.device.DeviceInspectionRepository
 import com.mobile.app.domain.repository.device.DeviceMediaRepository
@@ -50,8 +53,19 @@ object DeviceModule {
 
     @Provides
     @Singleton
-    fun provideDeviceRepository(api: DeviceApi): DeviceRepository {
-        return DeviceRepositoryImpl(api)
+    fun providePhoneSpecsRepository(
+        phoneSpecsApi: PhoneSpecsApi,
+    ): PhoneSpecsRepository {
+        return PhoneSpecsRepositoryImpl(phoneSpecsApi)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDeviceRepository(
+        api: DeviceApi,
+        phoneSpecsRepository: PhoneSpecsRepository,
+    ): DeviceRepository {
+        return DeviceRepositoryImpl(api, phoneSpecsRepository)
     }
 
     @Provides
@@ -70,7 +84,7 @@ object DeviceModule {
     @Singleton
     fun provideDeviceMediaRepository(
         deviceMediaApi: DeviceMediaApi,
-        mediaApi: MediaApi
+        mediaApi: MediaApi,
     ): DeviceMediaRepository {
         return DeviceMediaRepositoryImpl(deviceMediaApi, mediaApi)
     }

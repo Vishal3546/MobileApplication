@@ -6,21 +6,27 @@ import androidx.paging.PagingData
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.mobile.app.data.mapper.device.DeviceMapper
+import com.mobile.app.data.mapper.device.DeviceMiscMapper
 import com.mobile.app.data.remote.api.DeviceApi
 import com.mobile.app.data.remote.dto.device.DeviceCreateDto
 import com.mobile.app.data.remote.dto.device.DeviceStatusUpdateDto
 import com.mobile.app.data.remote.dto.device.DeviceUpdateDto
 import com.mobile.app.domain.model.device.Device
 import com.mobile.app.domain.model.device.DeviceCreate
+import com.mobile.app.domain.model.device.DeviceLifecycleEvent
 import com.mobile.app.domain.model.device.DeviceStatus
 import com.mobile.app.domain.model.device.DeviceUpdate
 import com.mobile.app.domain.model.device.ImeiVerificationResult
-import com.mobile.app.data.mapper.device.DeviceMiscMapper
+import com.mobile.app.domain.model.device.LifecycleEventType
+import com.mobile.app.domain.repository.PhoneSpecsRepository
 import com.mobile.app.domain.repository.device.DeviceRepository
 import kotlinx.coroutines.flow.Flow
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class DeviceRepositoryImpl(
-    private val api: DeviceApi
+    private val api: DeviceApi,
+    private val phoneSpecsRepository: PhoneSpecsRepository,
 ) : DeviceRepository {
 
     override suspend fun createDevice(deviceCreate: DeviceCreate): Result<Device> {
@@ -34,7 +40,7 @@ class DeviceRepositoryImpl(
                 ram = deviceCreate.ram,
                 imei1 = deviceCreate.imei1,
                 imei2 = deviceCreate.imei2,
-                serialNumber = deviceCreate.serialNumber
+                serialNumber = deviceCreate.serialNumber,
             )
             val response = api.createDevice(dto)
             Result.success(DeviceMapper.mapToDomain(response))
@@ -54,7 +60,7 @@ class DeviceRepositoryImpl(
                 ram = deviceUpdate.ram,
                 imei1 = deviceUpdate.imei1,
                 imei2 = deviceUpdate.imei2,
-                serialNumber = deviceUpdate.serialNumber
+                serialNumber = deviceUpdate.serialNumber,
             )
             val response = api.updateDevice(id, dto)
             Result.success(DeviceMapper.mapToDomain(response))
@@ -76,12 +82,11 @@ class DeviceRepositoryImpl(
         search: String?,
         brand: String?,
         model: String?,
-        status: String?
+        status: String?,
     ): Flow<PagingData<Device>> {
         return Pager(
             config = PagingConfig(pageSize = 20, enablePlaceholders = false),
-            pagingSourceFactory = { DevicePagingSource(api, search, brand, model, status) }
-        ).flow
+        ) { DevicePagingSource(api, search, brand, model, status) }.flow
     }
 
     override suspend fun updateDeviceStatus(id: String, status: DeviceStatus): Result<Device> {
@@ -102,20 +107,21 @@ class DeviceRepositoryImpl(
         }
     }
 
-    override suspend fun getDeviceLifecycle(id: String): Result<List<com.mobile.app.domain.model.device.DeviceLifecycleEvent>> {
+    override suspend fun getDeviceLifecycle(id: String): Result<List<DeviceLifecycleEvent>> {
         return try {
             val response = api.getDeviceLifecycle(id)
-            Result.success(response.map { 
-                com.mobile.app.domain.model.device.DeviceLifecycleEvent(
+            val mapped = response.map {
+                DeviceLifecycleEvent(
                     id = it.id,
                     deviceId = it.deviceId,
-                    eventType = com.mobile.app.domain.model.device.LifecycleEventType.valueOf(it.eventType),
+                    eventType = LifecycleEventType.valueOf(it.eventType),
                     performerId = it.performerId,
                     branchId = it.branchId,
                     metadata = it.metadata,
-                    timestamp = java.time.LocalDateTime.parse(it.timestamp, java.time.format.DateTimeFormatter.ISO_DATE_TIME)
+                    timestamp = LocalDateTime.parse(it.timestamp, DateTimeFormatter.ISO_DATE_TIME),
                 )
-            })
+            }
+            Result.success(mapped)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -125,8 +131,8 @@ class DeviceRepositoryImpl(
         return try {
             val response = api.getDeviceInfoByImei(imei)
             Result.success(DeviceMapper.mapToDomain(response))
-        } catch (e: Exception) {
-            Result.failure(e)
+        } catch (_: Exception) {
+            phoneSpecsRepository.getDeviceInfoByImei(imei)
         }
     }
 }
@@ -136,7 +142,7 @@ class DevicePagingSource(
     private val search: String?,
     private val brand: String?,
     private val model: String?,
-    private val status: String?
+    private val status: String?,
 ) : PagingSource<Int, Device>() {
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Device> {
         val page = params.key ?: 0
@@ -147,12 +153,13 @@ class DevicePagingSource(
                 search = search,
                 brand = brand,
                 model = model,
-                status = status
+                status = status,
             )
+            val nextPage = if ((page + 1) >= response.pages) null else (page + 1)
             LoadResult.Page(
                 data = response.items.map { DeviceMapper.mapToDomain(it) },
-                prevKey = if (page == 0) null else page - 1,
-                nextKey = if (page + 1 >= response.pages) null else page + 1
+                prevKey = if (page == 0) null else (page - 1),
+                nextKey = nextPage,
             )
         } catch (e: Exception) {
             LoadResult.Error(e)

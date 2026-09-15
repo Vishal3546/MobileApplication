@@ -6,6 +6,7 @@ import com.mobile.app.core.security.TokenStorage
 import com.mobile.app.data.remote.AuthApi
 import com.mobile.app.data.remote.HealthApi
 import com.mobile.app.BuildConfig
+import com.mobile.app.data.remote.api.PhoneSpecsApi
 import dagger.Lazy
 import dagger.Module
 import dagger.Provides
@@ -32,7 +33,7 @@ object NetworkModule {
     @Singleton
     fun provideTokenRefreshAuthenticator(
         tokenStorage: TokenStorage,
-        authApi: Lazy<AuthApi>
+        authApi: Lazy<AuthApi>,
     ): TokenRefreshAuthenticator {
         return TokenRefreshAuthenticator(tokenStorage, authApi)
     }
@@ -41,7 +42,7 @@ object NetworkModule {
     @Singleton
     fun provideOkHttpClient(
         authInterceptor: AuthInterceptor,
-        tokenRefreshAuthenticator: TokenRefreshAuthenticator
+        tokenRefreshAuthenticator: TokenRefreshAuthenticator,
     ): OkHttpClient {
         val logging = HttpLoggingInterceptor().apply {
             level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BASIC else HttpLoggingInterceptor.Level.NONE
@@ -101,5 +102,21 @@ object NetworkModule {
     @Singleton
     fun provideReportApi(retrofit: Retrofit): com.mobile.app.data.remote.api.ReportApi {
         return retrofit.create(com.mobile.app.data.remote.api.ReportApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun providePhoneSpecsApi(): PhoneSpecsApi {
+        val okHttpClient = OkHttpClient.Builder()
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(15, TimeUnit.SECONDS)
+            .build()
+
+        return Retrofit.Builder()
+            .baseUrl("https://phone-specs-api.vercel.app/")
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(PhoneSpecsApi::class.java)
     }
 }

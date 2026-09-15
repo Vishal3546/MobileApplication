@@ -1,6 +1,5 @@
 package com.mobile.app.presentation.device.create
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -8,13 +7,12 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.QrCodeScanner
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -25,15 +23,17 @@ import com.mobile.app.core.ui.components.VisualGridItem
 import com.mobile.app.domain.model.device.Device
 import com.mobile.app.domain.model.device.DeviceCatalog
 import com.mobile.app.domain.model.device.DeviceCreate
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.QrCodeScanner
+import com.mobile.app.domain.model.device.ModelInfo
 
 @Composable
 fun CreateDeviceScreen(
     onNavigateBack: () -> Unit,
-    viewModel: CreateDeviceViewModel = hiltViewModel()
+    viewModel: CreateDeviceViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val models by viewModel.models.collectAsState()
+    val fetchedDevice by viewModel.fetchedDevice.collectAsState()
+    val isFetchingImei by viewModel.isFetchingImei.collectAsState()
 
     LaunchedEffect(uiState) {
         if (uiState is CreateDeviceUiState.Success) {
@@ -45,28 +45,36 @@ fun CreateDeviceScreen(
         topBar = {
             AppTopBar(
                 title = "Add New Device",
-                onBackClick = onNavigateBack
+                onBackClick = onNavigateBack,
             )
-        }
+        },
     ) { padding ->
         DeviceFormContent(
             modifier = Modifier.padding(padding),
             isLoading = uiState is CreateDeviceUiState.Loading,
+            isFetchingImei = isFetchingImei,
+            fetchedDevice = fetchedDevice,
+            availableModels = models,
+            onBrandSelected = { brand ->
+                viewModel.loadModelsForBrand(brand)
+            },
+            onImeiEntered = { imei ->
+                viewModel.fetchDeviceByImei(imei)
+            },
             errorMessage = (uiState as? CreateDeviceUiState.Error)?.message,
-            onSubmit = { deviceCreate ->
-                viewModel.createDevice(
-                    deviceCreate.brand,
-                    deviceCreate.model,
-                    deviceCreate.variant,
-                    deviceCreate.color,
-                    deviceCreate.storage,
-                    deviceCreate.ram,
-                    deviceCreate.imei1,
-                    deviceCreate.imei2,
-                    deviceCreate.serialNumber
-                )
-            }
-        )
+        ) { deviceCreate ->
+            viewModel.createDevice(
+                deviceCreate.brand,
+                deviceCreate.model,
+                deviceCreate.variant,
+                deviceCreate.color,
+                deviceCreate.storage,
+                deviceCreate.ram,
+                deviceCreate.imei1,
+                deviceCreate.imei2,
+                deviceCreate.serialNumber,
+            )
+        }
     }
 }
 
@@ -76,10 +84,12 @@ fun DeviceFormContent(
     isLoading: Boolean = false,
     isFetchingImei: Boolean = false,
     fetchedDevice: Device? = null,
+    availableModels: List<ModelInfo> = emptyList(),
+    onBrandSelected: (String) -> Unit = {},
     onImeiEntered: (String) -> Unit = {},
     errorMessage: String? = null,
     buttonText: String = "Proceed to Tests",
-    onSubmit: (DeviceCreate) -> Unit
+    onSubmit: (DeviceCreate) -> Unit,
 ) {
     var brand by remember { mutableStateOf("") }
     var model by remember { mutableStateOf("") }
@@ -91,7 +101,7 @@ fun DeviceFormContent(
     var imei2 by remember { mutableStateOf("") }
     var serialNumber by remember { mutableStateOf("") }
 
-    var showScanner by remember { mutableStateOf(false) }
+    var showScanner by remember { mutableStateOf(value = false) }
 
     // State for visual selection steps
     var currentSubStep by remember { mutableStateOf(0) } // 0: Brand, 1: Model, 2: Specs
@@ -117,8 +127,7 @@ fun DeviceFormContent(
                     showScanner = false
                 }
             },
-            onClose = { showScanner = false }
-        )
+        ) { showScanner = false }
     }
 
     Column(modifier = modifier.fillMaxSize()) {
@@ -128,14 +137,14 @@ fun DeviceFormContent(
                     "Select Brand",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.padding(16.dp),
                 )
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(3),
                     modifier = Modifier.weight(1f),
                     contentPadding = PaddingValues(16.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     items(DeviceCatalog.brands) { brandInfo ->
                         VisualGridItem(
@@ -144,8 +153,9 @@ fun DeviceFormContent(
                             isSelected = brand == brandInfo.name,
                             onClick = {
                                 brand = brandInfo.name
+                                onBrandSelected(brand)
                                 currentSubStep = 1
-                            }
+                            },
                         )
                     }
                 }
@@ -155,15 +165,15 @@ fun DeviceFormContent(
                     "Select $brand Model",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.padding(16.dp),
                 )
-                val models = DeviceCatalog.modelsByBrand[brand] ?: emptyList()
+                val models = availableModels.ifEmpty { DeviceCatalog.modelsByBrand[brand] ?: emptyList() }
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     modifier = Modifier.weight(1f),
                     contentPadding = PaddingValues(16.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     items(models) { modelInfo ->
                         VisualGridItem(
@@ -173,11 +183,14 @@ fun DeviceFormContent(
                             onClick = {
                                 model = modelInfo.name
                                 currentSubStep = 2
-                            }
+                            },
                         )
                     }
                 }
-                TextButton(onClick = { currentSubStep = 0 }, modifier = Modifier.padding(16.dp)) {
+                TextButton(
+                    onClick = { currentSubStep = 0 },
+                    modifier = Modifier.padding(16.dp),
+                ) {
                     Text("Back to Brands")
                 }
             }
@@ -187,13 +200,13 @@ fun DeviceFormContent(
                         .fillMaxSize()
                         .padding(16.dp)
                         .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     // Selection Summary
                     Surface(
                         color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
                         shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
                         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                             Column(modifier = Modifier.weight(1f)) {
@@ -210,7 +223,7 @@ fun DeviceFormContent(
                     OutlinedTextField(
                         value = imei1,
                         onValueChange = { 
-                            if (it.length <= 15 && it.all { char -> char.isDigit() }) {
+                            if ((it.length <= 15) && it.all { char -> char.isDigit() }) {
                                 imei1 = it
                                 if (it.length == 15) onImeiEntered(it)
                             }
@@ -225,7 +238,7 @@ fun DeviceFormContent(
                                     Icon(Icons.Rounded.QrCodeScanner, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                                 }
                             }
-                        }
+                        },
                     )
 
                     // Other Specs
@@ -235,25 +248,30 @@ fun DeviceFormContent(
                             options = DeviceCatalog.ramOptions, 
                             selected = ram, 
                             onSelect = { ram = it },
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
                         )
                         DropdownSelector(
                             label = "Storage", 
                             options = DeviceCatalog.storageOptions, 
                             selected = storage, 
                             onSelect = { storage = it },
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
                         )
                     }
 
-                    DropdownSelector(label = "Color", options = DeviceCatalog.colors, selected = color, onSelect = { color = it })
+                    DropdownSelector(
+                        label = "Color",
+                        options = DeviceCatalog.colors,
+                        selected = color,
+                        onSelect = { color = it },
+                    )
                     
                     OutlinedTextField(
                         value = serialNumber,
                         onValueChange = { serialNumber = it },
                         label = { Text("Serial Number (Optional)") },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(14.dp)
+                        shape = RoundedCornerShape(14.dp),
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
@@ -264,11 +282,11 @@ fun DeviceFormContent(
                             onSubmit(DeviceCreate(brand, model, variant, color, storage, ram, imei1, imei2, serialNumber))
                         },
                         isLoading = isLoading,
-                        enabled = imei1.length == 15 && ram.isNotBlank() && storage.isNotBlank()
+                        enabled = (imei1.length == 15) && ram.isNotBlank() && storage.isNotBlank(),
                     )
 
-                    if (errorMessage != null) {
-                        Text(errorMessage, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    errorMessage?.let {
+                        Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
@@ -283,13 +301,13 @@ fun DropdownSelector(
     options: List<String>,
     selected: String,
     onSelect: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(value = false) }
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = { expanded = it },
-        modifier = modifier
+        modifier = modifier,
     ) {
         OutlinedTextField(
             value = selected,
@@ -298,7 +316,7 @@ fun DropdownSelector(
             label = { Text(label) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier.menuAnchor().fillMaxWidth(),
-            shape = RoundedCornerShape(14.dp)
+            shape = RoundedCornerShape(14.dp),
         )
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             options.forEach { option ->
@@ -307,7 +325,7 @@ fun DropdownSelector(
                     onClick = {
                         onSelect(option)
                         expanded = false
-                    }
+                    },
                 )
             }
         }
