@@ -36,12 +36,15 @@ fun BuybackWizardScreen(
     customerViewModel: CustomerViewModel = hiltViewModel()
 ) {
     val wizardState by viewModel.wizardState.collectAsState()
+    val models by viewModel.models.collectAsState()
+    val isFetchingModels by viewModel.isFetchingModels.collectAsState()
     val customerActionState by customerViewModel.actionState.collectAsState()
 
     // Handle customer creation success in step 5
     LaunchedEffect(customerActionState) {
         if (customerActionState is CustomerActionState.Success) {
-            val customerId = wizardState.customerId ?: ""
+            val successState = customerActionState as CustomerActionState.Success
+            val customerId = successState.customerId.takeIf { it.isNotBlank() } ?: wizardState.customerId ?: ""
             viewModel.createFinalPurchase(customerId, "Buyback initiated via wizard")
             customerViewModel.resetActionState()
         }
@@ -73,8 +76,10 @@ fun BuybackWizardScreen(
                         buttonText = "Next: Functional Test",
                         isLoading = wizardState.isLoading,
                         isFetchingImei = wizardState.isFetchingImei,
+                        isFetchingModels = isFetchingModels,
                         fetchedDevice = wizardState.fetchedDeviceDetails,
-                        availableModels = emptyList(), // Provide empty list initially, DeviceFormContent manages its own state
+                        availableModels = models,
+                        onBrandSelected = { viewModel.loadModelsForBrand(it) },
                         onImeiEntered = { viewModel.fetchDeviceDetails(it) },
                         errorMessage = wizardState.error,
                         onSubmit = { viewModel.submitDeviceInfo(it) }

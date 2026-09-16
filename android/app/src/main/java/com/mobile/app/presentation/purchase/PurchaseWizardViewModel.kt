@@ -9,6 +9,7 @@ import com.mobile.app.domain.repository.PurchaseRepository
 import com.mobile.app.domain.repository.device.DeviceRepository
 import com.mobile.app.domain.repository.device.DeviceInspectionRepository
 import com.mobile.app.domain.repository.device.DeviceConditionRepository
+import com.mobile.app.domain.repository.PhoneSpecsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -56,10 +57,31 @@ class PurchaseWizardViewModel @Inject constructor(
     private val purchaseRepository: PurchaseRepository,
     private val deviceRepository: DeviceRepository,
     private val inspectionRepository: DeviceInspectionRepository,
-    private val conditionRepository: DeviceConditionRepository
+    private val conditionRepository: DeviceConditionRepository,
+    private val phoneSpecsRepository: PhoneSpecsRepository
 ) : ViewModel() {
     private val _wizardState = MutableStateFlow(WizardState())
     val wizardState: StateFlow<WizardState> = _wizardState
+
+    private val _models = MutableStateFlow<List<ModelInfo>>(emptyList())
+    val models: StateFlow<List<ModelInfo>> = _models
+
+    private val _isFetchingModels = MutableStateFlow(false)
+    val isFetchingModels: StateFlow<Boolean> = _isFetchingModels
+
+    fun loadModelsForBrand(brand: String) {
+        _models.value = emptyList()
+        _isFetchingModels.value = true
+        viewModelScope.launch {
+            val result = phoneSpecsRepository.getModelsForBrand(brand)
+            result.onSuccess { liveModels ->
+                if (liveModels.isNotEmpty()) {
+                    _models.value = liveModels
+                }
+            }
+            _isFetchingModels.value = false
+        }
+    }
 
     fun nextStep() {
         _wizardState.value = _wizardState.value.copy(currentStep = _wizardState.value.currentStep + 1)

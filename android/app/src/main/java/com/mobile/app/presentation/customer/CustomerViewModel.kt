@@ -30,7 +30,7 @@ sealed class CustomerDetailState {
 sealed class CustomerActionState {
     object Idle : CustomerActionState()
     object Loading : CustomerActionState()
-    object Success : CustomerActionState()
+    data class Success(val customerId: String = "") : CustomerActionState()
     data class Error(val message: String) : CustomerActionState()
 }
 
@@ -74,7 +74,7 @@ class CustomerViewModel @Inject constructor(
         _actionState.value = CustomerActionState.Loading
         viewModelScope.launch {
             customerRepository.createCustomer(request)
-                .onSuccess { _actionState.value = CustomerActionState.Success }
+                .onSuccess { _actionState.value = CustomerActionState.Success(it.id.toString()) }
                 .onFailure { _actionState.value = CustomerActionState.Error(it.message ?: "Failed to create customer") }
         }
     }
@@ -84,7 +84,7 @@ class CustomerViewModel @Inject constructor(
         viewModelScope.launch {
             customerRepository.updateCustomer(id, request)
                 .onSuccess { 
-                    _actionState.value = CustomerActionState.Success
+                    _actionState.value = CustomerActionState.Success(id.toString())
                     loadCustomer(id) // Reload details
                 }
                 .onFailure { _actionState.value = CustomerActionState.Error(it.message ?: "Failed to update customer") }
@@ -96,7 +96,7 @@ class CustomerViewModel @Inject constructor(
         viewModelScope.launch {
             customerRepository.updateCustomerStatus(id, status)
                 .onSuccess {
-                    _actionState.value = CustomerActionState.Success
+                    _actionState.value = CustomerActionState.Success(id.toString())
                     loadCustomer(id) // Reload details
                 }
                 .onFailure { _actionState.value = CustomerActionState.Error(it.message ?: "Failed to update status") }

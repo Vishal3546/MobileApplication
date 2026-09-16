@@ -91,7 +91,7 @@ fun DeviceFormContent(
     onBrandSelected: (String) -> Unit = {},
     onImeiEntered: (String) -> Unit = {},
     errorMessage: String? = null,
-    buttonText: String = "Proceed to Tests",
+    buttonText: String = "Save Device",
     onSubmit: (DeviceCreate) -> Unit,
 ) {
     var brand by remember { mutableStateOf("") }
@@ -294,7 +294,7 @@ fun DeviceFormContent(
                             onSubmit(DeviceCreate(brand, model, variant, color, storage, ram, imei1, imei2, serialNumber))
                         },
                         isLoading = isLoading,
-                        enabled = imei1.isNotBlank() && ram.isNotBlank() && storage.isNotBlank(), // Allow any IMEI for now
+                        enabled = (imei1.length == 15) && ram.isNotBlank() && storage.isNotBlank(), // Dummy 15-digit allowed
                     )
 
                     errorMessage?.let {
