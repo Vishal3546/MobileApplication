@@ -32,27 +32,7 @@ object DeviceCatalog {
     // Using generic placeholder images for models - in production these would be real device shots
     private const val SMARTPHONE_PLACEHOLDER = "https://images.unsplash.com/photo-1592890288564-76628a30a657?q=80&w=200&auto=format&fit=crop"
 
-    val modelsByBrand: Map<String, List<ModelInfo>> = mapOf(
-        "Apple" to listOf(
-            ModelInfo("iPhone 15 Pro Max", "https://wsrv.nl/?url=https://fdn2.gsmarena.com/videolib/cp/apple-iphone-15-pro-max.jpg"),
-            ModelInfo("iPhone 15 Pro", "https://wsrv.nl/?url=https://fdn2.gsmarena.com/vv/bigpic/apple-iphone-15-pro.jpg"),
-            ModelInfo("iPhone 14 Pro Max", "https://wsrv.nl/?url=https://fdn2.gsmarena.com/vv/bigpic/apple-iphone-14-pro-max.jpg"),
-            ModelInfo("iPhone 13", "https://wsrv.nl/?url=https://fdn2.gsmarena.com/vv/bigpic/apple-iphone-13.jpg")
-        ),
-        "Samsung" to listOf(
-            ModelInfo("Galaxy S24 Ultra", "https://wsrv.nl/?url=https://fdn2.gsmarena.com/vv/bigpic/samsung-galaxy-s24-ultra-5g.jpg"),
-            ModelInfo("Galaxy Z Fold 5", "https://wsrv.nl/?url=https://fdn2.gsmarena.com/vv/bigpic/samsung-galaxy-z-fold5.jpg"),
-            ModelInfo("Galaxy A55", "https://wsrv.nl/?url=https://fdn2.gsmarena.com/vv/bigpic/samsung-galaxy-a55.jpg")
-        ),
-        "OnePlus" to listOf(
-            ModelInfo("OnePlus 12", "https://wsrv.nl/?url=https://fdn2.gsmarena.com/vv/bigpic/oneplus-12.jpg"),
-            ModelInfo("OnePlus Open", "https://wsrv.nl/?url=https://fdn2.gsmarena.com/vv/bigpic/oneplus-open.jpg")
-        ),
-        "Google" to listOf(
-            ModelInfo("Pixel 8 Pro", "https://wsrv.nl/?url=https://fdn2.gsmarena.com/vv/bigpic/google-pixel-8-pro.jpg"),
-            ModelInfo("Pixel 7a", "https://wsrv.nl/?url=https://fdn2.gsmarena.com/vv/bigpic/google-pixel-7a.jpg")
-        )
-    )
+    val modelsByBrand: Map<String, List<ModelInfo>> = emptyMap()
 
     val variants = listOf("Standard", "5G", "Dual SIM", "Global")
     val colors = listOf("Black", "White", "Blue", "Titanium", "Gold", "Green")

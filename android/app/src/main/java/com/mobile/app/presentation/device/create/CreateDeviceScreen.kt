@@ -178,7 +178,7 @@ fun DeviceFormContent(
                         CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                     }
                 }
-                val models = availableModels.ifEmpty { DeviceCatalog.modelsByBrand[brand] ?: emptyList() }
+                val models = availableModels
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     modifier = Modifier.weight(1f),

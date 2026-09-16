@@ -3,7 +3,6 @@ package com.mobile.app.presentation.device.create
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mobile.app.domain.model.device.Device
-import com.mobile.app.domain.model.device.DeviceCatalog
 import com.mobile.app.domain.model.device.DeviceCreate
 import com.mobile.app.domain.model.device.ModelInfo
 import com.mobile.app.domain.repository.PhoneSpecsRepository
@@ -37,9 +36,7 @@ class CreateDeviceViewModel @Inject constructor(
     val isFetchingModels: StateFlow<Boolean> = _isFetchingModels.asStateFlow()
 
     fun loadModelsForBrand(brand: String) {
-        // Clear previous models so we don't show old list, show fallback momentarily or empty
-        val fallback = DeviceCatalog.modelsByBrand[brand] ?: emptyList()
-        _models.value = fallback
+        _models.value = emptyList() // clear old models immediately
         _isFetchingModels.value = true
         
         viewModelScope.launch {
@@ -48,8 +45,6 @@ class CreateDeviceViewModel @Inject constructor(
                 if (liveModels.isNotEmpty()) {
                     _models.value = liveModels
                 }
-            }.onFailure {
-                // Keep fallback on failure
             }
             _isFetchingModels.value = false
         }
