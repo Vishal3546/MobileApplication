@@ -41,11 +41,16 @@ data class DeviceMediaDto(
 
 
 data class DeviceListResponseDto(
-    @SerializedName( "items") val items: List<DeviceDto>,
-    @SerializedName( "total") val total: Int,
-    @SerializedName( "page") val page: Int,
-    @SerializedName( "size") val size: Int,
-    @SerializedName( "pages") val pages: Int
-)
+    @SerializedName("content") val content: List<DeviceDto>? = null,
+    @SerializedName("items") val items: List<DeviceDto>? = null,
+    @SerializedName("totalElements") val totalElements: Int = 0,
+    @SerializedName("totalPages") val totalPages: Int = 0,
+    @SerializedName("number") val pageNumber: Int = 0,
+    @SerializedName("size") val pageSize: Int = 0,
+    @SerializedName("last") val isLast: Boolean = true
+) {
+    val deviceList: List<DeviceDto>
+        get() = content ?: items ?: emptyList()
+}
 
 

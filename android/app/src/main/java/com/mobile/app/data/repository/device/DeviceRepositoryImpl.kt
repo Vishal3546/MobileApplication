@@ -155,9 +155,9 @@ class DevicePagingSource(
                 model = model,
                 status = status,
             )
-            val nextPage = if ((page + 1) >= response.pages) null else (page + 1)
+            val nextPage = if (response.isLast || (page + 1) >= response.totalPages) null else (page + 1)
             LoadResult.Page(
-                data = response.items.map { DeviceMapper.mapToDomain(it) },
+                data = response.deviceList.map { DeviceMapper.mapToDomain(it) },
                 prevKey = if (page == 0) null else (page - 1),
                 nextKey = nextPage,
             )
