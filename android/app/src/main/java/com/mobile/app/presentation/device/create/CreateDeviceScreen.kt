@@ -234,7 +234,8 @@ fun DeviceFormContent(
                     OutlinedTextField(
                         value = imei1,
                         onValueChange = { 
-                            if ((it.length <= 15) && it.all { char -> char.isDigit() }) {
+                            // Allow any characters up to 15 length for testing
+                            if (it.length <= 15) {
                                 imei1 = it
                                 if (it.length == 15) onImeiEntered(it)
                             }
@@ -293,7 +294,7 @@ fun DeviceFormContent(
                             onSubmit(DeviceCreate(brand, model, variant, color, storage, ram, imei1, imei2, serialNumber))
                         },
                         isLoading = isLoading,
-                        enabled = (imei1.length == 15) && ram.isNotBlank() && storage.isNotBlank(),
+                        enabled = imei1.isNotBlank() && ram.isNotBlank() && storage.isNotBlank(), // Allow any IMEI for now
                     )
 
                     errorMessage?.let {

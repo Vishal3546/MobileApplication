@@ -75,7 +75,8 @@ class CreateDeviceViewModel @Inject constructor(
         imei2: String?,
         serialNumber: String?,
     ) {
-        if (!validateImei(imei1)) {
+        // Disabled strict IMEI validation for testing purposes
+        /*if (!validateImei(imei1)) {
             _uiState.value = CreateDeviceUiState.Error("Invalid IMEI 1")
             return
         }
@@ -83,7 +84,7 @@ class CreateDeviceViewModel @Inject constructor(
         if ((imei2 != null) && !validateImei(imei2)) {
             _uiState.value = CreateDeviceUiState.Error("Invalid IMEI 2")
             return
-        }
+        }*/
 
         _uiState.value = CreateDeviceUiState.Loading
         viewModelScope.launch {

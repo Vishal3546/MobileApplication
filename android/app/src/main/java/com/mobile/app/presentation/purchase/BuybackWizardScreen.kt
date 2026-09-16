@@ -74,6 +74,7 @@ fun BuybackWizardScreen(
                         isLoading = wizardState.isLoading,
                         isFetchingImei = wizardState.isFetchingImei,
                         fetchedDevice = wizardState.fetchedDeviceDetails,
+                        availableModels = emptyList(), // Provide empty list initially, DeviceFormContent manages its own state
                         onImeiEntered = { viewModel.fetchDeviceDetails(it) },
                         errorMessage = wizardState.error,
                         onSubmit = { viewModel.submitDeviceInfo(it) }
