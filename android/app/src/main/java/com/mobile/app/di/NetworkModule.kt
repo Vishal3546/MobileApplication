@@ -19,6 +19,27 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
+import okhttp3.Interceptor
+import okhttp3.Response
+
+class RetryInterceptor : Interceptor {
+    override fun intercept(chain: Interceptor.Chain): Response {
+        var response = chain.proceed(chain.request())
+        var tryCount = 0
+        while (!response.isSuccessful && tryCount < 3 && (response.code == 502 || response.code == 503 || response.code == 504)) {
+            tryCount++
+            response.close()
+            try {
+                Thread.sleep(2000)
+            } catch (_: InterruptedException) {
+                // Ignore
+            }
+            response = chain.proceed(chain.request())
+        }
+        return response
+    }
+}
+
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
@@ -52,9 +73,11 @@ object NetworkModule {
         return OkHttpClient.Builder()
             .addInterceptor(logging)
             .addInterceptor(authInterceptor)
+            .addInterceptor(RetryInterceptor())
             .authenticator(tokenRefreshAuthenticator)
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
+            .connectTimeout(60, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
             .build()
     }
 

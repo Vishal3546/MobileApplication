@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.PointOfSale
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.*
@@ -21,14 +21,17 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.compose.material.icons.rounded.Add
 import com.mobile.app.core.ui.components.AppCard
 
+@Suppress("DEPRECATION")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SaleListScreen(
     onNavigateToDetail: (String) -> Unit,
+    onNavigateToCreate: () -> Unit,
     onNavigateBack: () -> Unit,
-    viewModel: SaleListViewModel = hiltViewModel()
+    viewModel: SaleListViewModel = hiltViewModel(),
 ) {
     val items = viewModel.salesPagingFlow.collectAsLazyPagingItems()
     var searchQuery by remember { mutableStateOf("") }
@@ -39,7 +42,7 @@ fun SaleListScreen(
                 title = { Text("Sales", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Rounded.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -47,6 +50,15 @@ fun SaleListScreen(
                     titleContentColor = MaterialTheme.colorScheme.onBackground
                 )
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onNavigateToCreate,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ) {
+                Icon(Icons.Rounded.Add, contentDescription = "Create Sale")
+            }
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
@@ -73,7 +85,7 @@ fun SaleListScreen(
                 singleLine = true
             )
 
-            if (items.loadState.refresh is LoadState.NotLoading && items.itemCount == 0) {
+            if ((items.loadState.refresh is LoadState.NotLoading) && (items.itemCount == 0)) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(Icons.Rounded.Search, contentDescription = null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))

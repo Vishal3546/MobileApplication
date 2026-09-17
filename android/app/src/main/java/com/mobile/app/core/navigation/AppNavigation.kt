@@ -35,8 +35,6 @@ import com.mobile.app.presentation.reports.SendNotificationScreen
 import com.mobile.app.presentation.sales.SalesWizardScreen
 import com.mobile.app.presentation.purchase.create.CreatePurchaseScreen
 import com.mobile.app.presentation.purchase.detail.PurchaseDetailScreen
-import com.mobile.app.presentation.purchase.steps.PurchasePaymentScreen
-import com.mobile.app.core.security.PermissionManager
 import com.mobile.app.presentation.sales.list.SaleListScreen
 import com.mobile.app.presentation.inventory.list.InventoryListScreen
 import com.mobile.app.presentation.settlement.SettlementListScreen
@@ -45,9 +43,10 @@ import com.mobile.app.presentation.shop.ShopListScreen
 import com.mobile.app.presentation.shop.CreateShopScreen
 import com.mobile.app.core.utils.DirectInAppUpdateDialog
 
+@Suppress("DEPRECATION")
 @Composable
 fun AppNavigation(
-    authViewModel: AuthViewModel = hiltViewModel()
+    authViewModel: AuthViewModel = hiltViewModel(),
 ) {
     val navController = rememberNavController()
     val authState by authViewModel.authState.collectAsState()
@@ -65,13 +64,12 @@ fun AppNavigation(
     NavHost(navController = navController, startDestination = startDestination) {
         composable("login") {
             LoginScreen(
-                viewModel = authViewModel,
-                onNavigateToDashboard = {
-                    navController.navigate("dashboard") {
-                        popUpTo("login") { inclusive = true }
-                    }
+                viewModel = authViewModel
+            ) {
+                navController.navigate("dashboard") {
+                    popUpTo("login") { inclusive = true }
                 }
-            )
+            }
         }
 
         composable("dashboard") {
@@ -191,7 +189,7 @@ fun AppNavigation(
                 onNavigateToEdit = { editId -> navController.navigate("customerEdit/$editId") },
                 onNavigateToKyc = { kycId -> navController.navigate("kycList/$kycId") },
                 onNavigateToConsent = { consentId -> navController.navigate("consent/$consentId") },
-                onNavigateToDevices = { customerIdParam -> navController.navigate("deviceList") } // Simulated navigation
+                onNavigateToDevices = { _ -> navController.navigate("deviceList") } // Simulated navigation
             )
         }
 
@@ -237,7 +235,7 @@ fun AppNavigation(
             SignatureScreen(
                 customerId = customerId,
                 onNavigateBack = { navController.popBackStack() },
-                onSignatureCaptured = { mediaId ->
+                onSignatureCaptured = { _ ->
                     navController.popBackStack()
                 }
             )
@@ -264,50 +262,42 @@ fun AppNavigation(
             )
         }
 
-        composable("deviceDetail/{deviceId}") { backStackEntry ->
-            val deviceId = backStackEntry.arguments?.getString("deviceId") ?: return@composable
+        composable("deviceDetail/{deviceId}") {
             DeviceDetailScreen() // Placeholder
         }
 
-        composable("deviceCondition/{deviceId}") { backStackEntry ->
-            val deviceId = backStackEntry.arguments?.getString("deviceId") ?: return@composable
+        composable("deviceCondition/{deviceId}") {
             DeviceConditionScreen()
         }
 
-        composable("deviceConditionHistory/{deviceId}") { backStackEntry ->
-            val deviceId = backStackEntry.arguments?.getString("deviceId") ?: return@composable
+        composable("deviceConditionHistory/{deviceId}") {
             DeviceConditionHistoryScreen()
         }
 
-        composable("deviceInspection/{deviceId}") { backStackEntry ->
-            val deviceId = backStackEntry.arguments?.getString("deviceId") ?: return@composable
+        composable("deviceInspection/{deviceId}") {
             DeviceInspectionScreen()
         }
 
-        composable("deviceInspectionHistory/{deviceId}") { backStackEntry ->
-            val deviceId = backStackEntry.arguments?.getString("deviceId") ?: return@composable
+        composable("deviceInspectionHistory/{deviceId}") {
             DeviceInspectionHistoryScreen()
         }
 
-        composable("deviceMedia/{deviceId}") { backStackEntry ->
-            val deviceId = backStackEntry.arguments?.getString("deviceId") ?: return@composable
+        composable("deviceMedia/{deviceId}") {
             DeviceMediaScreen()
         }
 
-        composable("imeiVerification/{deviceId}") { backStackEntry ->
-            val deviceId = backStackEntry.arguments?.getString("deviceId") ?: return@composable
+        composable("imeiVerification/{deviceId}") {
             ImeiVerificationScreen()
         }
 
-        composable("deviceLifecycle/{deviceId}") { backStackEntry ->
-            val deviceId = backStackEntry.arguments?.getString("deviceId") ?: return@composable
+        composable("deviceLifecycle/{deviceId}") {
             DeviceLifecycleScreen()
         }
 
         composable("purchaseList") {
             PurchaseListScreen(
                 onNavigateToDetail = { id -> navController.navigate("purchaseDetail/$id") },
-                onNavigateToCreate = { navController.navigate("purchaseCreate") },
+                onNavigateToCreate = { navController.navigate("buybackWizard") },
                 onNavigateBack = { navController.popBackStack() }
             )
         }
@@ -330,6 +320,7 @@ fun AppNavigation(
         composable("saleList") {
             SaleListScreen(
                 onNavigateToDetail = { id -> navController.navigate("saleDetail/$id") }, // Assuming detail route will be added later
+                onNavigateToCreate = { navController.navigate("salesWizard") },
                 onNavigateBack = { navController.popBackStack() }
             )
         }

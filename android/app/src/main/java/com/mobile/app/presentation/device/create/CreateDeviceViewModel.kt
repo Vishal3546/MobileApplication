@@ -54,11 +54,14 @@ class CreateDeviceViewModel @Inject constructor(
         if (imei.length < 15) return
         viewModelScope.launch {
             _isFetchingImei.value = true
-            val result = repository.getDeviceInfoByImei(imei)
-            result.onSuccess { device ->
-                _fetchedDevice.value = device
-                _isFetchingImei.value = false
-            }.onFailure {
+            try {
+                val result = repository.getDeviceInfoByImei(imei)
+                result.onSuccess { device ->
+                    _fetchedDevice.value = device
+                }
+            } catch (_: Exception) {
+                // Ignore exception, allow manual entry
+            } finally {
                 _isFetchingImei.value = false
             }
         }
@@ -115,7 +118,7 @@ class CreateDeviceViewModel @Inject constructor(
         }
     }
 
-    private fun validateImei(imei: String): Boolean {
+    /* private fun validateImei(imei: String): Boolean {
         val cleanImei = imei.trim()
         if ((cleanImei.length != 15) || !cleanImei.all { it.isDigit() }) return false
 
@@ -131,7 +134,7 @@ class CreateDeviceViewModel @Inject constructor(
             alternate = !alternate
         }
         return (sum % 10) == 0
-    }
+    } */
 }
 
 sealed class CreateDeviceUiState {

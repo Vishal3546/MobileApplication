@@ -11,6 +11,7 @@ import okhttp3.Authenticator
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.Route
+import java.io.IOException
 
 class TokenRefreshAuthenticator(
     private val tokenStorage: TokenStorage,
@@ -55,11 +56,12 @@ class TokenRefreshAuthenticator(
                         null
                     }
                 } catch (e: Exception) {
-                    // Network error during refresh, do not clear tokens yet, let the request fail
-                    // Or clear tokens? If it's a true network error, maybe wait. The requirement says:
-                    // "If refresh fails: clear session". We'll clear it just to be safe.
-                    tokenStorage.clearTokens()
-                    null
+                    if (e is IOException) {
+                        null // Network error, do not clear tokens
+                    } else {
+                        tokenStorage.clearTokens()
+                        null
+                    }
                 }
             }
         }
