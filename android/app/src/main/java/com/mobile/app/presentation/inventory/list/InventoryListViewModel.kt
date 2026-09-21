@@ -1,18 +1,30 @@
 package com.mobile.app.presentation.inventory.list
 
+import android.util.Base64
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.mobile.app.core.security.TokenStorage
+import com.mobile.app.domain.model.NetworkState
+import com.mobile.app.domain.model.inventory.BrandSummary
 import com.mobile.app.domain.model.inventory.Inventory
 import com.mobile.app.domain.repository.InventoryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
+
+data class GroupedUiState(
+    val isLoading: Boolean = false,
+    val groups: List<BrandSummary> = emptyList(),
+    val error: String? = null
+)
 
 @HiltViewModel
 class InventoryListViewModel @Inject constructor(
@@ -21,6 +33,12 @@ class InventoryListViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val filterState = MutableStateFlow(FilterState())
+
+    private val _viewMode = MutableStateFlow(InventoryViewMode.FLAT)
+    val viewMode: StateFlow<InventoryViewMode> = _viewMode.asStateFlow()
+
+    private val _groupedState = MutableStateFlow(GroupedUiState())
+    val groupedState: StateFlow<GroupedUiState> = _groupedState.asStateFlow()
 
     init {
         // Automatically extract branchId from token for non-superadmins
@@ -44,6 +62,47 @@ class InventoryListViewModel @Inject constructor(
 
     fun updateStatus(status: String?) {
         filterState.value = filterState.value.copy(status = status)
+        if (_viewMode.value == InventoryViewMode.GROUPED) {
+            loadGroupedSummary()
+        }
+    }
+
+    fun toggleViewMode() {
+        _viewMode.value = if (_viewMode.value == InventoryViewMode.FLAT)
+            InventoryViewMode.GROUPED else InventoryViewMode.FLAT
+
+        if (_viewMode.value == InventoryViewMode.GROUPED) {
+            loadGroupedSummary()
+        }
+    }
+
+    fun loadGroupedSummary() {
+        viewModelScope.launch {
+            _groupedState.value = _groupedState.value.copy(isLoading = true, error = null)
+
+            val filter = filterState.value
+            when (val result = repository.getBrandWiseSummary(filter.status, filter.branchId)) {
+                is NetworkState.Success -> {
+                    _groupedState.value = GroupedUiState(
+                        isLoading = false,
+                        groups = result.data.sortedByDescending { it.count }
+                    )
+                }
+                is NetworkState.Error -> {
+                    _groupedState.value = GroupedUiState(
+                        isLoading = false,
+                        error = result.message ?: "Failed to load brand summary"
+                    )
+                }
+                is NetworkState.Offline -> {
+                    _groupedState.value = GroupedUiState(
+                        isLoading = false,
+                        error = "No internet connection"
+                    )
+                }
+                is NetworkState.Loading -> { }
+            }
+        }
     }
 
     private fun getBranchIdFromToken(): String? {
@@ -51,8 +110,7 @@ class InventoryListViewModel @Inject constructor(
         return try {
             val parts = token.split(".")
             if (parts.size == 3) {
-                val payload = String(android.util.Base64.decode(parts[1], android.util.Base64.URL_SAFE))
-                // Look for branchId in JWT payload
+                val payload = String(Base64.decode(parts[1], Base64.URL_SAFE))
                 val regex = "\"branchId\":\"([^\"]+)\"".toRegex()
                 regex.find(payload)?.groupValues?.get(1)
             } else null

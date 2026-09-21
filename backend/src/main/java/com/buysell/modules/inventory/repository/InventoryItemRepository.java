@@ -29,4 +29,15 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, UU
 
     @Query("SELECT COUNT(i) > 0 FROM InventoryItem i WHERE i.device.id = :deviceId AND i.status IN :statuses")
     boolean hasActiveInventoryForDevice(@Param("deviceId") UUID deviceId, @Param("statuses") java.util.Collection<InventoryStatus> statuses);
+
+    @Query("SELECT i.device.brand as brand, COUNT(i) as count, COALESCE(SUM(i.sellingPrice), 0) as totalValue " +
+           "FROM InventoryItem i " +
+           "WHERE (cast(:status as text) IS NULL OR CAST(i.status as string) = :status) " +
+           "AND (cast(:branchId as text) IS NULL OR i.branch.id = :branchId) " +
+           "GROUP BY i.device.brand " +
+           "ORDER BY COUNT(i) DESC")
+    java.util.List<com.buysell.modules.inventory.dto.BrandSummaryProjection> getBrandWiseSummary(
+        @Param("status") String status,
+        @Param("branchId") UUID branchId
+    );
 }

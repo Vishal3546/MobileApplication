@@ -1,5 +1,6 @@
 package com.mobile.app.data.remote.api
 
+import com.mobile.app.data.remote.dto.inventory.BrandSummaryDto
 import com.mobile.app.data.remote.dto.inventory.InventoryResponse
 import com.mobile.app.data.remote.dto.inventory.InventoryStatusHistoryResponse
 import com.mobile.app.data.remote.dto.inventory.InventorySummaryResponse
@@ -32,6 +33,12 @@ interface InventoryApi {
 
     @GET("/api/v1/inventory/summary")
     suspend fun getInventorySummary(@Query("branchId") branchId: UUID? = null): Response<InventorySummaryResponse>
+
+    @GET("/api/v1/inventory/summary/by-brand")
+    suspend fun getBrandWiseSummary(
+        @Query("status") status: String? = null,
+        @Query("branchId") branchId: UUID? = null
+    ): Response<List<BrandSummaryDto>>
 
     @PATCH("/api/v1/inventory/{id}/status")
     suspend fun changeStatus(

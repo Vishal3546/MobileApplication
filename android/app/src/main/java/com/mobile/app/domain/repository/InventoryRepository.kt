@@ -2,6 +2,7 @@ package com.mobile.app.domain.repository
 
 import androidx.paging.PagingData
 import com.mobile.app.domain.model.NetworkState
+import com.mobile.app.domain.model.inventory.BrandSummary
 import com.mobile.app.domain.model.inventory.Inventory
 import com.mobile.app.domain.model.inventory.InventoryStatusHistory
 import com.mobile.app.domain.model.inventory.InventorySummary
@@ -19,6 +20,7 @@ interface InventoryRepository {
 
     suspend fun getInventoryById(id: UUID): NetworkState<Inventory>
     suspend fun getInventorySummary(branchId: UUID?): NetworkState<InventorySummary>
+    suspend fun getBrandWiseSummary(status: String?, branchId: UUID?): NetworkState<List<BrandSummary>>
     suspend fun changeStatus(id: UUID, status: String, reason: String?): NetworkState<Inventory>
     suspend fun updateSellingPrice(id: UUID, sellingPrice: BigDecimal, reason: String?): NetworkState<Inventory>
     suspend fun reserveInventory(id: UUID, customerId: UUID?, reason: String?): NetworkState<Inventory>

@@ -9,6 +9,7 @@ import com.mobile.app.data.mapper.toDomain
 import com.mobile.app.data.remote.api.*
 import com.mobile.app.data.remote.dto.inventory.StockTransferRequest
 import com.mobile.app.domain.model.NetworkState
+import com.mobile.app.domain.model.inventory.BrandSummary
 import com.mobile.app.domain.model.inventory.Inventory
 import com.mobile.app.domain.model.inventory.InventoryStatusHistory
 import com.mobile.app.domain.model.inventory.InventorySummary
@@ -43,6 +44,18 @@ class InventoryRepositoryImpl @Inject constructor(
 
     override suspend fun getInventorySummary(branchId: UUID?): NetworkState<InventorySummary> {
         return safeApiCall { inventoryApi.getInventorySummary(branchId) }.map { it.toDomain() }
+    }
+
+    override suspend fun getBrandWiseSummary(status: String?, branchId: UUID?): NetworkState<List<BrandSummary>> {
+        return safeApiCall { inventoryApi.getBrandWiseSummary(status, branchId) }.map { dtoList ->
+            dtoList.map { dto ->
+                BrandSummary(
+                    brand = dto.brand ?: "Unknown",
+                    count = dto.count?.toInt() ?: 0,
+                    totalValue = dto.totalValue ?: BigDecimal.ZERO
+                )
+            }
+        }
     }
 
     override suspend fun changeStatus(id: UUID, status: String, reason: String?): NetworkState<Inventory> {

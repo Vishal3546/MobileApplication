@@ -199,6 +199,25 @@ public class InventoryService {
     }
 
     @Transactional(readOnly = true)
+    public List<com.buysell.modules.inventory.dto.BrandSummaryDto> getBrandWiseSummary(String status, UUID branchId) {
+        UUID finalBranchId = branchId;
+        if (!currentUserService.hasPermission("SUPER_ADMIN")) {
+            finalBranchId = currentUserService.getCurrentBranch().getId();
+        }
+        
+        List<com.buysell.modules.inventory.dto.BrandSummaryProjection> projections = 
+                inventoryItemRepository.getBrandWiseSummary(status, finalBranchId);
+        
+        return projections.stream()
+                .map(p -> new com.buysell.modules.inventory.dto.BrandSummaryDto(
+                        p.getBrand() != null ? p.getBrand() : "Unknown",
+                        p.getCount() != null ? p.getCount() : 0L,
+                        p.getTotalValue() != null ? p.getTotalValue() : BigDecimal.ZERO
+                ))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public InventorySummaryResponse getInventorySummary(UUID branchId) {
         // Enforce branch access
         UUID finalBranchId = branchId;
