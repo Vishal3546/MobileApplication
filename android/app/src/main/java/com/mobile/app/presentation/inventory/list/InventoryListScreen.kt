@@ -9,11 +9,11 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.List
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material.icons.rounded.GridView
-import androidx.compose.material.icons.rounded.List
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -24,7 +24,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.mobile.app.domain.model.inventory.Inventory
@@ -62,7 +62,7 @@ fun InventoryListScreen(
                 title = { Text("Shop Inventory", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Rounded.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
@@ -71,7 +71,7 @@ fun InventoryListScreen(
                         viewMode = if (viewMode == InventoryViewMode.FLAT) InventoryViewMode.GROUPED else InventoryViewMode.FLAT
                     }) {
                         Icon(
-                            imageVector = if (viewMode == InventoryViewMode.FLAT) Icons.Rounded.GridView else Icons.Rounded.List,
+                            imageVector = if (viewMode == InventoryViewMode.FLAT) Icons.Rounded.GridView else Icons.AutoMirrored.Rounded.List,
                             contentDescription = "Toggle View Mode"
                         )
                     }
@@ -120,7 +120,7 @@ fun InventoryListScreen(
                             selectedStatus = status
                             viewModel.updateStatus(status)
                         },
-                        label = { Text(status?.lowercase()?.capitalize() ?: "All Stock") },
+                        label = { Text(status?.lowercase()?.replaceFirstChar { it.uppercase() } ?: "All Stock") },
                         leadingIcon = {
                             if (selectedStatus == status) {
                                 Icon(Icons.Rounded.FilterList, contentDescription = null, modifier = Modifier.size(16.dp))
