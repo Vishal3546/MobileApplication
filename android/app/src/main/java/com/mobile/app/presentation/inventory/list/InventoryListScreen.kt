@@ -1,6 +1,7 @@
 package com.mobile.app.presentation.inventory.list
 
-import androidx.compose.foundation.background
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -9,13 +10,16 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.FilterList
+import androidx.compose.material.icons.rounded.GridView
+import androidx.compose.material.icons.rounded.List
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -23,8 +27,20 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.mobile.app.core.ui.components.AppCard
+import com.mobile.app.domain.model.inventory.Inventory
 import com.mobile.app.presentation.inventory.InventoryListItem
+import java.math.BigDecimal
+
+enum class InventoryViewMode {
+    FLAT, GROUPED
+}
+
+data class BrandGroup(
+    val brand: String,
+    val count: Int,
+    val totalValue: BigDecimal,
+    val items: List<Inventory>
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,6 +54,7 @@ fun InventoryListScreen(
 
     val statuses = listOf(null, "AVAILABLE", "RESERVED", "IN_TRANSIT", "SOLD", "DAMAGED")
     var selectedStatus by remember { mutableStateOf<String?>(null) }
+    var viewMode by remember { mutableStateOf(InventoryViewMode.FLAT) }
 
     Scaffold(
         topBar = {
@@ -46,6 +63,17 @@ fun InventoryListScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Rounded.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    // Toggle Flat / Grouped View
+                    IconButton(onClick = {
+                        viewMode = if (viewMode == InventoryViewMode.FLAT) InventoryViewMode.GROUPED else InventoryViewMode.FLAT
+                    }) {
+                        Icon(
+                            imageVector = if (viewMode == InventoryViewMode.FLAT) Icons.Rounded.GridView else Icons.Rounded.List,
+                            contentDescription = "Toggle View Mode"
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -110,36 +138,114 @@ fun InventoryListScreen(
                         Text("No stock found in this category.", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.outline)
                     }
                 }
-            }
-
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                items(items.itemCount) { index ->
-                    val inventory = items[index]
-                    if (inventory != null) {
-                        InventoryListItem(
-                            inventory = inventory,
-                            onClick = { onNavigateToDetail(inventory.id.toString()) }
-                        )
-                    }
-                }
-
-                items.apply {
-                    when {
-                        loadState.refresh is LoadState.Loading -> {
-                            item { Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator() } }
-                        }
-                        loadState.append is LoadState.Loading -> {
-                            item { Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator() } }
-                        }
-                        loadState.refresh is LoadState.Error -> {
-                            item { 
-                                Text("Error loading inventory. Please try again.", color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(16.dp))
+            } else {
+                when (viewMode) {
+                    InventoryViewMode.FLAT -> {
+                        // Flat View Mode
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            items(items.itemCount) { index ->
+                                val inventory = items[index]
+                                if (inventory != null) {
+                                    InventoryListItem(
+                                        inventory = inventory,
+                                        onClick = { onNavigateToDetail(inventory.id.toString()) }
+                                    )
+                                }
                             }
                         }
+                    }
+                    InventoryViewMode.GROUPED -> {
+                        // Grouped View Mode (Brand-wise 1-level Accordion)
+                        val groupedItems = remember(items.itemSnapshotList) {
+                            items.itemSnapshotList.items
+                                .groupBy { it.brand }
+                                .map { (brand, list) ->
+                                    BrandGroup(
+                                        brand = brand,
+                                        count = list.size,
+                                        totalValue = list.fold(BigDecimal.ZERO) { acc, item -> acc.add(item.sellingPrice) },
+                                        items = list
+                                    )
+                                }
+                                .sortedByDescending { it.count }
+                        }
+
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            items(groupedItems) { group ->
+                                BrandGroupAccordion(
+                                    group = group,
+                                    onItemClick = { inventory -> onNavigateToDetail(inventory.id.toString()) }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun BrandGroupAccordion(
+    group: BrandGroup,
+    onItemClick: (Inventory) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val rotationState by animateFloatAsState(targetValue = if (expanded) 90f else 0f, label = "arrowRotation")
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+    ) {
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { expanded = !expanded }
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
+                        text = "${group.brand} (${group.count})",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "Total Stock Value: ₹${group.totalValue}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+                Icon(
+                    imageVector = Icons.Rounded.ChevronRight,
+                    contentDescription = "Expand",
+                    modifier = Modifier.rotate(rotationState)
+                )
+            }
+
+            AnimatedVisibility(visible = expanded) {
+                Column(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    group.items.forEach { inventory ->
+                        InventoryListItem(
+                            inventory = inventory,
+                            onClick = { onItemClick(inventory) }
+                        )
                     }
                 }
             }
