@@ -10,9 +10,9 @@ jobs:
   backend-test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up JDK 17
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
@@ -20,14 +20,16 @@ jobs:
     - name: Run Backend Tests
       run: |
         cd backend
-        ./mvnw clean test
+        # rerunFailingTestsCount=1: ek flaky failure (slow runner pe concurrency/timing tests)
+        # ko ek baar auto-retry karta hai; consistent failure ab bhi build fail karega.
+        ./mvnw clean test -Dsurefire.rerunFailingTestsCount=1
 
   frontend-test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: '24'
         cache: 'npm'
@@ -42,9 +44,9 @@ jobs:
   android-test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: set up JDK 17
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'

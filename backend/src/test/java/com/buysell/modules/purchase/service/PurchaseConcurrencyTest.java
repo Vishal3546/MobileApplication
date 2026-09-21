@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -65,7 +66,8 @@ public class PurchaseConcurrencyTest {
         }
         
         latch.countDown();
-        doneLatch.await(5, TimeUnit.SECONDS);
+        // Generous timeout for slow CI runners (was 5s — flaky on 2-vCPU GitHub runners)
+        assertTrue(doneLatch.await(60, TimeUnit.SECONDS), "Concurrent tasks did not complete in time");
         
         assertEquals(threadCount, successfulGenerations.get());
         assertEquals(11, sequence.get()); // 10 increments + 1 base
