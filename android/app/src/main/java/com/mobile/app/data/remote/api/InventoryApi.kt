@@ -37,6 +37,7 @@ interface InventoryApi {
     @GET("/api/v1/inventory/summary/by-brand")
     suspend fun getBrandWiseSummary(
         @Query("status") status: String? = null,
+        @Query("search") search: String? = null,
         @Query("branchId") branchId: UUID? = null
     ): Response<List<BrandSummaryDto>>
 

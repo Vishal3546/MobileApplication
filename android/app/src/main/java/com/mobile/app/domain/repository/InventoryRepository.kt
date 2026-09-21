@@ -11,6 +11,12 @@ import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
 import java.util.UUID
 
+/** One page of inventory items fetched without Paging 3 (used for brand-wise lazy expansion). */
+data class InventoryPage(
+    val items: List<Inventory>,
+    val totalElements: Long
+)
+
 interface InventoryRepository {
     fun getInventoryListPaging(
         status: String?,
@@ -18,9 +24,17 @@ interface InventoryRepository {
         branchId: UUID?
     ): Flow<PagingData<Inventory>>
 
+    suspend fun getInventoryItems(
+        page: Int,
+        size: Int,
+        status: String?,
+        search: String?,
+        branchId: UUID?
+    ): NetworkState<InventoryPage>
+
     suspend fun getInventoryById(id: UUID): NetworkState<Inventory>
     suspend fun getInventorySummary(branchId: UUID?): NetworkState<InventorySummary>
-    suspend fun getBrandWiseSummary(status: String?, branchId: UUID?): NetworkState<List<BrandSummary>>
+    suspend fun getBrandWiseSummary(status: String?, search: String?, branchId: UUID?): NetworkState<List<BrandSummary>>
     suspend fun changeStatus(id: UUID, status: String, reason: String?): NetworkState<Inventory>
     suspend fun updateSellingPrice(id: UUID, sellingPrice: BigDecimal, reason: String?): NetworkState<Inventory>
     suspend fun reserveInventory(id: UUID, customerId: UUID?, reason: String?): NetworkState<Inventory>

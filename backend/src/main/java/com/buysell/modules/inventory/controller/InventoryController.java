@@ -81,8 +81,9 @@ public class InventoryController {
     @PreAuthorize("hasAuthority('VIEW_INVENTORY')")
     public ResponseEntity<List<BrandSummaryDto>> getBrandWiseSummary(
             @RequestParam(required = false) String status,
+            @RequestParam(required = false) String search,
             @RequestParam(required = false) UUID branchId) {
-        return ResponseEntity.ok(inventoryService.getBrandWiseSummary(status, branchId));
+        return ResponseEntity.ok(inventoryService.getBrandWiseSummary(status, search, branchId));
     }
 
     @GetMapping("/summary")

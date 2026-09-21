@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.mobile.app.core.ui.components.AppCard
+import com.mobile.app.core.utils.CurrencyFormatter
 import com.mobile.app.domain.model.inventory.Inventory
 
 @Composable
@@ -40,9 +41,22 @@ fun InventoryListItem(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.outline
                 )
+                val specs = listOfNotNull(
+                    inventory.storage.takeIf { it.isNotBlank() },
+                    inventory.ram.takeIf { it.isNotBlank() },
+                    inventory.color.takeIf { it.isNotBlank() }
+                ).joinToString(" • ")
+                if (specs.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = specs,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                }
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "₹${inventory.sellingPrice}",
+                    text = CurrencyFormatter.formatRupees(inventory.sellingPrice),
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
                     color = MaterialTheme.colorScheme.primary
                 )

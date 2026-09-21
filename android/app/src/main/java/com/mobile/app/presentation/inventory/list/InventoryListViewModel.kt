@@ -11,10 +11,13 @@ import com.mobile.app.domain.model.inventory.BrandSummary
 import com.mobile.app.domain.model.inventory.Inventory
 import com.mobile.app.domain.repository.InventoryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -26,6 +29,7 @@ data class GroupedUiState(
     val error: String? = null
 )
 
+@OptIn(FlowPreview::class)
 @HiltViewModel
 class InventoryListViewModel @Inject constructor(
     private val repository: InventoryRepository,
@@ -34,17 +38,37 @@ class InventoryListViewModel @Inject constructor(
 
     private val filterState = MutableStateFlow(FilterState())
 
+    /** Raw search input from the text field; debounced before it hits the API. */
+    private val searchInput = MutableStateFlow("")
+
     private val _viewMode = MutableStateFlow(InventoryViewMode.FLAT)
     val viewMode: StateFlow<InventoryViewMode> = _viewMode.asStateFlow()
 
     private val _groupedState = MutableStateFlow(GroupedUiState())
     val groupedState: StateFlow<GroupedUiState> = _groupedState.asStateFlow()
 
+    /** The committed (debounced) filters — screens use this so lazy brand expansions don't fire per keystroke. */
+    val activeFilters: StateFlow<FilterState> = filterState.asStateFlow()
+
     init {
         // Automatically extract branchId from token for non-superadmins
         val branchId = getBranchIdFromToken()
         if (branchId != null) {
             filterState.value = filterState.value.copy(branchId = UUID.fromString(branchId))
+        }
+
+        // Debounced search: the flat paging flow refreshes reactively through filterState,
+        // the grouped brand summaries are reloaded explicitly when in grouped mode.
+        viewModelScope.launch {
+            searchInput
+                .debounce(SEARCH_DEBOUNCE_MS)
+                .distinctUntilChanged()
+                .collect { query ->
+                    filterState.value = filterState.value.copy(search = query.takeIf { it.isNotBlank() })
+                    if (_viewMode.value == InventoryViewMode.GROUPED) {
+                        loadGroupedSummary()
+                    }
+                }
         }
     }
 
@@ -57,7 +81,7 @@ class InventoryListViewModel @Inject constructor(
     }
 
     fun updateSearch(query: String) {
-        filterState.value = filterState.value.copy(search = query.takeIf { it.isNotBlank() })
+        searchInput.value = query
     }
 
     fun updateStatus(status: String?) {
@@ -81,7 +105,11 @@ class InventoryListViewModel @Inject constructor(
             _groupedState.value = _groupedState.value.copy(isLoading = true, error = null)
 
             val filter = filterState.value
-            when (val result = repository.getBrandWiseSummary(filter.status, filter.branchId)) {
+            when (val result = repository.getBrandWiseSummary(
+                status = filter.status,
+                search = filter.search,
+                branchId = filter.branchId
+            )) {
                 is NetworkState.Success -> {
                     _groupedState.value = GroupedUiState(
                         isLoading = false,
@@ -124,4 +152,8 @@ class InventoryListViewModel @Inject constructor(
         val status: String? = null,
         val branchId: UUID? = null
     )
+
+    companion object {
+        private const val SEARCH_DEBOUNCE_MS = 300L
+    }
 }

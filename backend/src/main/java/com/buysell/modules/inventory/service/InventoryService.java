@@ -64,7 +64,8 @@ public class InventoryService {
                 predicates.add(cb.or(
                     cb.like(cb.lower(root.get("stockCode")), searchPattern),
                     cb.like(cb.lower(root.join("device").get("model")), searchPattern),
-                    cb.like(cb.lower(root.join("device").get("brand")), searchPattern)
+                    cb.like(cb.lower(root.join("device").get("brand")), searchPattern),
+                    cb.like(cb.lower(root.join("device").get("imei1")), searchPattern)
                 ));
             }
             return cb.and(predicates.toArray(jakarta.persistence.criteria.Predicate[]::new));
@@ -199,14 +200,16 @@ public class InventoryService {
     }
 
     @Transactional(readOnly = true)
-    public List<com.buysell.modules.inventory.dto.BrandSummaryDto> getBrandWiseSummary(String status, UUID branchId) {
+    public List<com.buysell.modules.inventory.dto.BrandSummaryDto> getBrandWiseSummary(String status, String search, UUID branchId) {
         UUID finalBranchId = branchId;
         if (!currentUserService.hasPermission("SUPER_ADMIN")) {
             finalBranchId = currentUserService.getCurrentBranch().getId();
         }
-        
+
+        String normalizedSearch = (search == null || search.trim().isEmpty()) ? null : search.trim();
+
         List<com.buysell.modules.inventory.dto.BrandSummaryProjection> projections = 
-                inventoryItemRepository.getBrandWiseSummary(status, finalBranchId);
+                inventoryItemRepository.getBrandWiseSummary(status, normalizedSearch, finalBranchId);
         
         return projections.stream()
                 .map(p -> new com.buysell.modules.inventory.dto.BrandSummaryDto(

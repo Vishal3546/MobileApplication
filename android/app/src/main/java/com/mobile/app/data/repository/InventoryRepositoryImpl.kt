@@ -14,6 +14,7 @@ import com.mobile.app.domain.model.inventory.Inventory
 import com.mobile.app.domain.model.inventory.InventoryStatusHistory
 import com.mobile.app.domain.model.inventory.InventorySummary
 import com.mobile.app.domain.model.inventory.StockTransfer
+import com.mobile.app.domain.repository.InventoryPage
 import com.mobile.app.domain.repository.InventoryRepository
 import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
@@ -38,6 +39,29 @@ class InventoryRepositoryImpl @Inject constructor(
         ).flow
     }
 
+    override suspend fun getInventoryItems(
+        page: Int,
+        size: Int,
+        status: String?,
+        search: String?,
+        branchId: UUID?
+    ): NetworkState<InventoryPage> {
+        return safeApiCall {
+            inventoryApi.getInventoryList(
+                page = page,
+                size = size,
+                status = status,
+                search = search,
+                branchId = branchId
+            )
+        }.map { response ->
+            InventoryPage(
+                items = response.content.map { it.toDomain() },
+                totalElements = response.totalElements
+            )
+        }
+    }
+
     override suspend fun getInventoryById(id: UUID): NetworkState<Inventory> {
         return safeApiCall { inventoryApi.getInventoryById(id) }.map { it.toDomain() }
     }
@@ -46,8 +70,8 @@ class InventoryRepositoryImpl @Inject constructor(
         return safeApiCall { inventoryApi.getInventorySummary(branchId) }.map { it.toDomain() }
     }
 
-    override suspend fun getBrandWiseSummary(status: String?, branchId: UUID?): NetworkState<List<BrandSummary>> {
-        return safeApiCall { inventoryApi.getBrandWiseSummary(status, branchId) }.map { dtoList ->
+    override suspend fun getBrandWiseSummary(status: String?, search: String?, branchId: UUID?): NetworkState<List<BrandSummary>> {
+        return safeApiCall { inventoryApi.getBrandWiseSummary(status, search, branchId) }.map { dtoList ->
             dtoList.map { dto ->
                 BrandSummary(
                     brand = dto.brand ?: "Unknown",
