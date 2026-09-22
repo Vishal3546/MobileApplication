@@ -71,14 +71,15 @@ object TacLookupHelper {
         "35832531" to Pair("Google", "Pixel 6"),
         "35832331" to Pair("Google", "Pixel 6a"),
 
-        // Xiaomi / Poco / Redmi
-        "86948206" to Pair("Xiaomi", "14 Ultra"),
-        "86948006" to Pair("Xiaomi", "14"),
-        "86231906" to Pair("Xiaomi", "13 Pro"),
+        // Xiaomi / Poco / Redmi (Redmi models live under the Xiaomi brand
+        // so they resolve against the DeviceCatalog)
+        "86948206" to Pair("Xiaomi", "Xiaomi 14 Ultra"),
+        "86948006" to Pair("Xiaomi", "Xiaomi 14"),
+        "86231906" to Pair("Xiaomi", "Xiaomi 13 Pro"),
         "86231706" to Pair("Poco", "X6 Pro"),
         "86231506" to Pair("Poco", "F5"),
-        "86812406" to Pair("Redmi", "Note 13 Pro+"),
-        "86812206" to Pair("Redmi", "Note 13 Pro"),
+        "86812406" to Pair("Xiaomi", "Redmi Note 13 Pro+"),
+        "86812206" to Pair("Xiaomi", "Redmi Note 13 Pro"),
 
         // Vivo / iQOO
         "86738406" to Pair("Vivo", "X100 Pro"),
@@ -102,20 +103,9 @@ object TacLookupHelper {
         val cleanImei = imei.trim().replace(" ", "")
         if (cleanImei.length < 8) return null
         val tac = cleanImei.substring(0, 8)
-        
-        tacMap[tac]?.let { return it }
 
-        // Expanded Fallback
-        return when {
-            tac.startsWith("3529") || tac.startsWith("3536") || tac.startsWith("3530") || tac.startsWith("3544") || tac.startsWith("3538") -> Pair("Apple", "iPhone")
-            tac.startsWith("3515") || tac.startsWith("3568") || tac.startsWith("3579") || tac.startsWith("3592") || tac.startsWith("3543") || tac.startsWith("3517") || tac.startsWith("3532") -> Pair("Samsung", "Galaxy")
-            tac.startsWith("3528") || tac.startsWith("3541") || tac.startsWith("3583") -> Pair("Google", "Pixel")
-            tac.startsWith("8612") || tac.startsWith("8634") || tac.startsWith("8654") || tac.startsWith("8684") || tac.startsWith("8615") -> Pair("OnePlus", "")
-            tac.startsWith("8694") || tac.startsWith("8623") || tac.startsWith("8681") -> Pair("Xiaomi", "Redmi")
-            tac.startsWith("8673") || tac.startsWith("8652") -> Pair("Vivo", "")
-            tac.startsWith("8649") -> Pair("Realme", "")
-            tac.startsWith("8631") -> Pair("Nothing", "Phone")
-            else -> null
-        }
+        // Exact TAC match only. Prefix-based brand guessing is intentionally
+        // NOT done: a wrong guess silently overrides the user's selection.
+        return tacMap[tac]
     }
 }

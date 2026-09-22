@@ -111,12 +111,23 @@ fun DeviceFormContent(
 
     LaunchedEffect(fetchedDevice) {
         fetchedDevice?.let {
-            brand = it.brand
-            model = it.model
-            variant = it.variant ?: ""
-            color = it.color
-            storage = it.storage
-            ram = it.ram
+            // Only apply auto-detected info when it is a REAL match (TAC hit
+            // or a device that already exists in the system). A "Generic"
+            // marker means the IMEI could not be identified — in that case
+            // keep whatever brand/model the user selected.
+            val isRealMatch = it.brand.isNotBlank() &&
+                    !it.brand.equals("Generic", ignoreCase = true) &&
+                    it.model.isNotBlank() &&
+                    !it.model.equals("Smartphone", ignoreCase = true)
+
+            if (isRealMatch) {
+                brand = it.brand
+                model = it.model
+                variant = it.variant ?: ""
+                if (it.color.isNotBlank()) color = it.color
+                storage = it.storage
+                ram = it.ram
+            }
             currentSubStep = 2 // Skip to specs if fetched
         }
     }
@@ -164,6 +175,9 @@ fun DeviceFormContent(
                 }
             }
             1 -> { // Model Selection
+                var showManualModel by remember { mutableStateOf(false) }
+                var manualModel by remember { mutableStateOf("") }
+
                 Row(
                     modifier = Modifier.padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -193,9 +207,48 @@ fun DeviceFormContent(
                             isSelected = model == modelInfo.name,
                             onClick = {
                                 model = modelInfo.name
+                                // Prefill RAM/storage from the local spec catalog
+                                DeviceCatalog.specFor(brand, modelInfo.name)?.let { s ->
+                                    ram = s.defaultRam
+                                    storage = s.defaultStorage
+                                }
                                 currentSubStep = 2
                             },
                         )
+                    }
+                }
+
+                // Fallback for models not listed in the catalog
+                if (showManualModel) {
+                    OutlinedTextField(
+                        value = manualModel,
+                        onValueChange = { manualModel = it },
+                        label = { Text("Model name (e.g. Galaxy S20)") },
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        shape = RoundedCornerShape(14.dp),
+                    )
+                    Button(
+                        onClick = {
+                            model = manualModel.trim()
+                            currentSubStep = 2
+                        },
+                        enabled = manualModel.isNotBlank(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        shape = RoundedCornerShape(14.dp),
+                    ) {
+                        Text("Continue with \"${manualModel.trim()}\"")
+                    }
+                } else {
+                    TextButton(
+                        onClick = { showManualModel = true },
+                        modifier = Modifier.padding(8.dp),
+                    ) {
+                        Text("Model list me nahi mila? Naam likh kar enter karo")
                     }
                 }
                 TextButton(
@@ -253,19 +306,28 @@ fun DeviceFormContent(
                         },
                     )
 
+                    // Model-specific RAM/storage options when known
+                    val modelSpec = remember(brand, model) { DeviceCatalog.specFor(brand, model) }
+                    val ramOptions = modelSpec?.ramOptions?.let { opts ->
+                        if (ram.isNotBlank() && ram !in opts) opts + ram else opts
+                    } ?: DeviceCatalog.ramOptions
+                    val storageOptions = modelSpec?.storageOptions?.let { opts ->
+                        if (storage.isNotBlank() && storage !in opts) opts + storage else opts
+                    } ?: DeviceCatalog.storageOptions
+
                     // Other Specs
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         DropdownSelector(
-                            label = "RAM", 
-                            options = DeviceCatalog.ramOptions, 
-                            selected = ram, 
+                            label = "RAM",
+                            options = ramOptions,
+                            selected = ram,
                             onSelect = { ram = it },
                             modifier = Modifier.weight(1f),
                         )
                         DropdownSelector(
-                            label = "Storage", 
-                            options = DeviceCatalog.storageOptions, 
-                            selected = storage, 
+                            label = "Storage",
+                            options = storageOptions,
+                            selected = storage,
                             onSelect = { storage = it },
                             modifier = Modifier.weight(1f),
                         )

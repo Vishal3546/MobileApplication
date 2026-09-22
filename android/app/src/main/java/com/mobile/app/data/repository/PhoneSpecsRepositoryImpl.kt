@@ -4,6 +4,7 @@ import com.mobile.app.core.utils.TacLookupHelper
 import com.mobile.app.data.remote.api.PhoneSpecsApi
 import com.mobile.app.domain.model.device.BrandInfo
 import com.mobile.app.domain.model.device.Device
+import com.mobile.app.domain.model.device.DeviceCatalog
 import com.mobile.app.domain.model.device.DeviceStatus
 import com.mobile.app.domain.model.device.ImeiVerificationState
 import com.mobile.app.domain.model.device.ModelInfo
@@ -62,6 +63,13 @@ class PhoneSpecsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getModelsForBrand(brand: String): Result<List<ModelInfo>> {
+        // Local catalog first (instant, offline). The external phone-specs API
+        // is unreliable/dead, so it is only consulted when the local catalog
+        // has nothing for this brand.
+        val localModels = DeviceCatalog.modelsByBrand[brand] ?: emptyList()
+        if (localModels.isNotEmpty()) {
+            return Result.success(localModels)
+        }
         return try {
             // First get brands to find the slug
             val brandsResponse = phoneSpecsApi.getBrands()
@@ -128,45 +136,34 @@ class PhoneSpecsRepositoryImpl @Inject constructor(
 
     override suspend fun getDeviceInfoByImei(imei: String): Result<Device> {
         val tacMatch = TacLookupHelper.lookup(imei)
-        val searchBrand = tacMatch?.first ?: "Generic"
-        val searchModel = tacMatch?.second ?: "Smartphone"
 
-        return try {
-            val searchResult = phoneSpecsApi.searchPhone("$searchBrand $searchModel")
-            val firstPhone = searchResult.data?.phones?.firstOrNull()
-
-            if (firstPhone?.slug != null) {
-                val detailsResult = getPhoneDetails(firstPhone.slug)
-                val details = detailsResult.getOrNull()
-
-                val device = createFallbackDevice(
-                    brand = details?.brand ?: searchBrand,
-                    model = details?.model ?: searchModel,
-                    storage = details?.storage ?: "128 GB",
-                    ram = details?.ram ?: "8 GB",
-                    imei = imei,
-                )
-                Result.success(device)
-            } else {
-                val device = createFallbackDevice(
-                    brand = searchBrand,
-                    model = searchModel,
+        // No reliable (free) TAC database exists — when the TAC is not in our
+        // local map we return a "Generic" marker; the UI keeps the user's
+        // brand/model selection instead of overwriting it.
+        if (tacMatch == null) {
+            return Result.success(
+                createFallbackDevice(
+                    brand = "Generic",
+                    model = "Smartphone",
                     storage = "128 GB",
                     ram = "8 GB",
                     imei = imei,
                 )
-                Result.success(device)
-            }
-        } catch (_: Exception) {
-            val device = createFallbackDevice(
-                brand = searchBrand,
-                model = searchModel,
-                storage = "128 GB",
-                ram = "8 GB",
+            )
+        }
+
+        val (brand, model) = tacMatch
+        // Specs come from the local catalog — instant, no network needed
+        val spec = DeviceCatalog.specFor(brand, model)
+        return Result.success(
+            createFallbackDevice(
+                brand = brand,
+                model = model,
+                storage = spec?.defaultStorage ?: "128 GB",
+                ram = spec?.defaultRam ?: "8 GB",
                 imei = imei,
             )
-            Result.success(device)
-        }
+        )
     }
 
     private fun createFallbackDevice(
