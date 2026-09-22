@@ -30,8 +30,8 @@ data class DeviceCreateDto(
     @SerializedName("model") val model: String,
     @SerializedName("variant") val variant: String?,
     @SerializedName("color") val color: String,
-    @SerializedName("storage") val storage: String,
-    @SerializedName("ram") val ram: String,
+    @SerializedName("storageGb") val storage: String,
+    @SerializedName("ramGb") val ram: String,
     @SerializedName("imei1") val imei1: String,
     @SerializedName("imei2") val imei2: String?,
     @SerializedName("serialNumber") val serialNumber: String?
@@ -42,8 +42,8 @@ data class DeviceUpdateDto(
     @SerializedName("model") val model: String,
     @SerializedName("variant") val variant: String?,
     @SerializedName("color") val color: String,
-    @SerializedName("storage") val storage: String,
-    @SerializedName("ram") val ram: String,
+    @SerializedName("storageGb") val storage: String,
+    @SerializedName("ramGb") val ram: String,
     @SerializedName("imei1") val imei1: String,
     @SerializedName("imei2") val imei2: String?,
     @SerializedName("serialNumber") val serialNumber: String?
