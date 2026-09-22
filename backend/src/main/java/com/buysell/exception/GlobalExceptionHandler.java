@@ -95,6 +95,21 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(
+            org.springframework.dao.DataIntegrityViolationException ex, HttpServletRequest request) {
+        // DB constraint violations (unique index, FK, etc.) → 409, not a raw 500
+        log.error("Data integrity violation on {} {}", request.getMethod(), request.getRequestURI(), ex);
+        ErrorResponse error = ErrorResponse.builder()
+                .success(false)
+                .code("DATA_CONFLICT")
+                .message("The request violates a database constraint (duplicate or invalid value).")
+                .path(request.getRequestURI())
+                .timestamp(LocalDateTime.now())
+                .build();
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneralException(Exception ex, HttpServletRequest request) {
         // Log full stack trace server-side; client only gets a generic message

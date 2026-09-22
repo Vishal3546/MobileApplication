@@ -41,15 +41,24 @@ public class DeviceService {
             }
         }
 
+        // serial_number has a partial unique index (WHERE serial_number IS NOT NULL):
+        // an empty string "" would collide across devices, NULL is allowed.
+        // Normalize blank → null and pre-check duplicates for a clean 409.
+        String serialNumber = normalizeToNull(request.getSerialNumber());
+        if (serialNumber != null && deviceRepository.existsBySerialNumber(serialNumber)) {
+            throw new BusinessException("SERIAL_NUMBER_ALREADY_EXISTS",
+                    "A device with this serial number already exists.", HttpStatus.CONFLICT);
+        }
+
         User currentUser = currentUserService.getCurrentUser();
 
         Device device = Device.builder()
                 .imei1(imei1)
                 .imei2(imei2)
-                .serialNumber(request.getSerialNumber())
+                .serialNumber(serialNumber)
                 .brand(request.getBrand())
                 .model(request.getModel())
-                .variant(request.getVariant())
+                .variant(normalizeToNull(request.getVariant()))
                 .color(request.getColor())
                 .storageGb(com.buysell.modules.device.mapper.DeviceMapper.parseSize(request.getStorageGb()))
                 .ramGb(com.buysell.modules.device.mapper.DeviceMapper.parseSize(request.getRamGb()))
@@ -75,12 +84,22 @@ public class DeviceService {
                 throw new BusinessException("INVALID_IMEI", "IMEI1 and IMEI2 cannot be the same.", HttpStatus.BAD_REQUEST);
             }
             device.setImei2(imei2);
+        } else if (request.getImei2() != null) {
+            // Blank IMEI2 means "clear it" — store NULL, never "" (unique index)
+            device.setImei2(null);
         }
 
-        if (request.getSerialNumber() != null) device.setSerialNumber(request.getSerialNumber());
+        if (request.getSerialNumber() != null) {
+            String serialNumber = normalizeToNull(request.getSerialNumber());
+            if (serialNumber != null && deviceRepository.existsBySerialNumberAndIdNot(serialNumber, id)) {
+                throw new BusinessException("SERIAL_NUMBER_ALREADY_EXISTS",
+                        "A device with this serial number already exists.", HttpStatus.CONFLICT);
+            }
+            device.setSerialNumber(serialNumber);
+        }
         if (request.getBrand() != null) device.setBrand(request.getBrand());
         if (request.getModel() != null) device.setModel(request.getModel());
-        if (request.getVariant() != null) device.setVariant(request.getVariant());
+        if (request.getVariant() != null) device.setVariant(normalizeToNull(request.getVariant()));
         if (request.getColor() != null) device.setColor(request.getColor());
         if (request.getStorageGb() != null) device.setStorageGb(com.buysell.modules.device.mapper.DeviceMapper.parseSize(request.getStorageGb()));
         if (request.getRamGb() != null) device.setRamGb(com.buysell.modules.device.mapper.DeviceMapper.parseSize(request.getRamGb()));
@@ -149,5 +168,15 @@ public class DeviceService {
     @Transactional(readOnly = true)
     public java.util.List<com.buysell.modules.device.entity.DeviceLifecycleHistory> getDeviceLifecycleHistory(UUID id) {
         return lifecycleService.getHistory(id);
+    }
+
+    /**
+     * Normalize a nullable string field: blank → null.
+     * Critical for columns with partial unique indexes (serial_number, imei2):
+     * an empty string "" is a real value that collides across rows, while
+     * PostgreSQL allows multiple NULLs.
+     */
+    private String normalizeToNull(String value) {
+        return (value == null || value.isBlank()) ? null : value.trim();
     }
 }

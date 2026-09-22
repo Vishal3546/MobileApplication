@@ -28,6 +28,10 @@ public interface DeviceRepository extends JpaRepository<Device, UUID> {
     @Query("SELECT CASE WHEN COUNT(d) > 0 THEN true ELSE false END FROM Device d WHERE (d.imei1 = :imei OR d.imei2 = :imei) AND d.id != :id")
     boolean existsByImeiCrossFieldExcludeId(@Param("imei") String imei, @Param("id") UUID id);
 
+    boolean existsBySerialNumber(String serialNumber);
+
+    boolean existsBySerialNumberAndIdNot(String serialNumber, UUID id);
+
     @Query("SELECT d FROM Device d WHERE d.imei1 = :imei OR d.imei2 = :imei")
     Optional<Device> findByImei(@Param("imei") String imei);
     

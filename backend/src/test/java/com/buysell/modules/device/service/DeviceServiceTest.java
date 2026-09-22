@@ -100,4 +100,40 @@ class DeviceServiceTest {
         assertEquals(DeviceStatus.BLOCKED, mockDevice.getStatus());
         verify(lifecycleService).recordEvent(eq(mockDevice), argThat(event -> event.name().equals("DEVICE_BLOCKED")), any(), any());
     }
+
+    @Test
+    void createDevice_blankSerialNumber_normalizedToNull() {
+        // App sends "" for optional serial number; it must be stored as NULL,
+        // otherwise the partial unique index on serial_number rejects the 2nd device.
+        CreateDeviceRequest req = new CreateDeviceRequest();
+        req.setImei1("356938035643809");
+        req.setBrand("Apple");
+        req.setModel("iPhone 13");
+        req.setSerialNumber("   ");
+
+        when(imeiVerificationProvider.verifyImei(req.getImei1(), "IMEI1")).thenReturn(req.getImei1());
+        when(currentUserService.getCurrentUser()).thenReturn(mockUser);
+        when(deviceRepository.save(any(Device.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Device created = deviceService.createDevice(req);
+
+        assertNotNull(created);
+        assertNull(created.getSerialNumber());
+    }
+
+    @Test
+    void createDevice_duplicateSerialNumber_throwsConflict() {
+        CreateDeviceRequest req = new CreateDeviceRequest();
+        req.setImei1("356938035643809");
+        req.setBrand("Apple");
+        req.setModel("iPhone 13");
+        req.setSerialNumber("SN-12345");
+
+        when(imeiVerificationProvider.verifyImei(req.getImei1(), "IMEI1")).thenReturn(req.getImei1());
+        when(deviceRepository.existsBySerialNumber("SN-12345")).thenReturn(true);
+
+        BusinessException ex = assertThrows(BusinessException.class, () -> deviceService.createDevice(req));
+        assertEquals("SERIAL_NUMBER_ALREADY_EXISTS", ex.getCode());
+        verify(deviceRepository, never()).save(any());
+    }
 }

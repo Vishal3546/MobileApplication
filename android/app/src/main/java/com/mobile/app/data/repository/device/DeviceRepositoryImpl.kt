@@ -34,13 +34,13 @@ class DeviceRepositoryImpl(
             val dto = DeviceCreateDto(
                 brand = deviceCreate.brand,
                 model = deviceCreate.model,
-                variant = deviceCreate.variant,
+                variant = deviceCreate.variant?.trim()?.ifBlank { null },
                 color = deviceCreate.color,
                 storage = deviceCreate.storage,
                 ram = deviceCreate.ram,
                 imei1 = deviceCreate.imei1,
-                imei2 = deviceCreate.imei2,
-                serialNumber = deviceCreate.serialNumber,
+                imei2 = deviceCreate.imei2?.trim()?.ifBlank { null },
+                serialNumber = deviceCreate.serialNumber?.trim()?.ifBlank { null },
             )
             val response = api.createDevice(dto)
             Result.success(DeviceMapper.mapToDomain(response))
@@ -54,13 +54,13 @@ class DeviceRepositoryImpl(
             val dto = DeviceUpdateDto(
                 brand = deviceUpdate.brand,
                 model = deviceUpdate.model,
-                variant = deviceUpdate.variant,
+                variant = deviceUpdate.variant?.trim()?.ifBlank { null },
                 color = deviceUpdate.color,
                 storage = deviceUpdate.storage,
                 ram = deviceUpdate.ram,
                 imei1 = deviceUpdate.imei1,
-                imei2 = deviceUpdate.imei2,
-                serialNumber = deviceUpdate.serialNumber,
+                imei2 = deviceUpdate.imei2?.trim()?.ifBlank { null },
+                serialNumber = deviceUpdate.serialNumber?.trim()?.ifBlank { null },
             )
             val response = api.updateDevice(id, dto)
             Result.success(DeviceMapper.mapToDomain(response))
