@@ -83,6 +83,9 @@ public class InventoryIntegrationTest {
     @Autowired
     private com.buysell.modules.shop.repository.ShopRepository shopRepository;
 
+    @Autowired
+    private com.buysell.modules.inventory.repository.InventoryItemRepository inventoryItemRepository;
+
     private Branch branch1;
     private Branch branch2;
     private User admin;
@@ -136,6 +139,57 @@ public class InventoryIntegrationTest {
         // Duplicate creation should be idempotent
         InventoryItem duplicate = inventoryCreationService.createInventoryFromPurchase(purchase);
         assertEquals(item.getId(), duplicate.getId());
+    }
+
+    /**
+     * Regression test: getBrandWiseSummary with NULL search/status/branchId used to
+     * blow up with "function lower(bytea) does not exist" because Hibernate translated
+     * CONCAT('%', :search, '%') to '%'||?||'%' and PostgreSQL inferred bytea for the
+     * untyped NULL parameter.
+     */
+    @Test
+    void testBrandWiseSummaryWithNullParams() {
+        // Unique brand so the assertions stay independent of data left over by
+        // other test classes sharing the same embedded database.
+        String uniqueBrand = "RegBrand" + java.util.UUID.randomUUID().toString().substring(0, 8);
+        Customer c2 = customerRepository.save(Customer.builder().firstName("Reg").lastName("Brand").phone("999").branch(branch1).build());
+        Device d2 = deviceRepository.save(Device.builder()
+                .imei1("99" + java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 13))
+                .brand(uniqueBrand).model("RegModel").build());
+        PurchaseTransaction p2 = purchaseTransactionRepository.save(PurchaseTransaction.builder()
+                .purchaseNumber("PUR-" + java.util.UUID.randomUUID().toString().substring(0, 8))
+                .device(d2).branch(branch1).employee(admin).customer(c2)
+                .finalPrice(new BigDecimal("50.00"))
+                .transactionStatus(TransactionStatus.COMPLETED)
+                .build());
+        com.buysell.modules.inventory.entity.InventoryItem createdItem =
+                inventoryCreationService.createInventoryFromPurchase(p2);
+        createdItem.setSellingPrice(new BigDecimal("75.00"));
+        inventoryItemRepository.save(createdItem);
+
+        // All-null params (the app's initial grouped-view load)
+        List<com.buysell.modules.inventory.dto.BrandSummaryDto> summary =
+                inventoryService.getBrandWiseSummary(null, null, null);
+        assertNotNull(summary);
+        com.buysell.modules.inventory.dto.BrandSummaryDto myRow = summary.stream()
+                .filter(s -> uniqueBrand.equals(s.getBrand()))
+                .findFirst().orElse(null);
+        assertNotNull(myRow, "Unique brand row must be present in summary");
+        assertEquals(1L, myRow.getCount());
+        assertEquals(new BigDecimal("75.00"), myRow.getTotalValue());
+
+        // Null search with a branch filter
+        List<com.buysell.modules.inventory.dto.BrandSummaryDto> byBranch =
+                inventoryService.getBrandWiseSummary(null, null, branch1.getId());
+        assertNotNull(byBranch);
+        assertTrue(byBranch.stream().anyMatch(s -> uniqueBrand.equals(s.getBrand())));
+
+        // Non-null search still works
+        List<com.buysell.modules.inventory.dto.BrandSummaryDto> bySearch =
+                inventoryService.getBrandWiseSummary(null, uniqueBrand, null);
+        assertNotNull(bySearch);
+        assertEquals(1, bySearch.size());
+        assertEquals(uniqueBrand, bySearch.get(0).getBrand());
     }
     
     @Test

@@ -99,6 +99,7 @@ public class SalePaymentService {
         sumPaid = sumPaid.add(payment.getAmount());
         if (sumPaid.compareTo(sale.getFinalAmount()) == 0 && sale.getSaleStatus() != SaleStatus.PAID) {
             sale.setSaleStatus(SaleStatus.PAID);
+            sale.setPaymentStatus(PaymentStatus.SUCCESS);
             saleTransactionRepository.save(sale);
         }
 

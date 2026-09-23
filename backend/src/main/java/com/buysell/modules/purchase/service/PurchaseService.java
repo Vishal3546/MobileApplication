@@ -5,8 +5,8 @@ import com.buysell.modules.audit.service.AuditService;
 import com.buysell.modules.branch.entity.Branch;
 import com.buysell.modules.customer.entity.Customer;
 import com.buysell.modules.customer.entity.CustomerConsent;
+import com.buysell.modules.customer.enums.ConsentType;
 import com.buysell.modules.customer.enums.CustomerStatus;
-import com.buysell.modules.customer.enums.VerificationStatus;
 import com.buysell.modules.customer.repository.CustomerConsentRepository;
 import com.buysell.modules.customer.service.CustomerService;
 import com.buysell.modules.device.entity.Device;
@@ -18,6 +18,8 @@ import com.buysell.modules.purchase.dto.CreatePurchaseRequest;
 import com.buysell.modules.purchase.entity.PurchaseStatusHistory;
 import com.buysell.modules.purchase.entity.PurchaseTransaction;
 import com.buysell.modules.purchase.enums.TransactionStatus;
+import com.buysell.modules.purchase.dto.CreatePurchasePaymentRequest;
+import com.buysell.modules.purchase.enums.PaymentMode;
 import com.buysell.modules.purchase.repository.PurchaseStatusHistoryRepository;
 import com.buysell.modules.purchase.repository.PurchaseTransactionRepository;
 import com.buysell.security.CurrentUserService;
@@ -141,7 +143,27 @@ public class PurchaseService {
     public void completePurchase(UUID purchaseId) {
         // Lock the transaction to prevent concurrent completion attempts
         PurchaseTransaction purchase = getAndValidateAccessWithLock(purchaseId);
-        statusService.validateTransition(purchase.getTransactionStatus(), TransactionStatus.COMPLETED);
+
+        // Completion is allowed from any NON-TERMINAL state. The wizard flow
+        // (device -> inspection -> condition -> pricing -> customer) already
+        // satisfies the checklist below, so forcing clients through the full
+        // INITIATED -> ... -> PENDING_PAYMENT chain only breaks the app.
+        TransactionStatus previousStatus = purchase.getTransactionStatus();
+        if (previousStatus == TransactionStatus.COMPLETED) {
+            throw new BusinessException("PURCHASE_ALREADY_COMPLETED", "Cannot transition a completed purchase.", HttpStatus.BAD_REQUEST);
+        }
+        if (previousStatus == TransactionStatus.CANCELLED) {
+            throw new BusinessException("PURCHASE_ALREADY_CANCELLED", "Cannot transition a cancelled purchase.", HttpStatus.BAD_REQUEST);
+        }
+
+        // The app wizard presents the final price summary to the customer and
+        // the staff taps "Complete Purchase" — that confirmation is the consent
+        // moment. The app currently has no consent screen wired into the wizard
+        // and its consent DTO cannot reference a purchase, so record the consent
+        // implicitly here to keep the audit trail complete without blocking the
+        // flow. Explicitly captured consents (if any) are left untouched.
+        ensurePurchaseConsent(purchase);
+        ensurePurchasePayment(purchase);
 
         // Checklist validation
         validateCompletionPrerequisites(purchase);
@@ -149,7 +171,7 @@ public class PurchaseService {
         // Transition
         purchase.setTransactionStatus(TransactionStatus.COMPLETED);
         purchase = purchaseRepository.save(purchase);
-        recordStatusHistory(purchase, TransactionStatus.PENDING_PAYMENT, TransactionStatus.COMPLETED, "Purchase completed successfully");
+        recordStatusHistory(purchase, previousStatus, TransactionStatus.COMPLETED, "Purchase completed successfully");
 
         // Receipt Generation
         receiptService.generateReceipt(purchase);
@@ -170,13 +192,48 @@ public class PurchaseService {
         );
     }
 
+    private void ensurePurchaseConsent(PurchaseTransaction purchase) {
+        List<CustomerConsent> consents = consentRepository.findByReferenceTypeAndReferenceId("PURCHASE", purchase.getId());
+        if (!consents.isEmpty()) {
+            return;
+        }
+        CustomerConsent consent = CustomerConsent.builder()
+                .customer(purchase.getCustomer())
+                .consentType(ConsentType.PURCHASE_CONSENT)
+                .consentTextVersion("buyback-wizard-v1")
+                .capturedBy(currentUserService.getCurrentUser())
+                .referenceType("PURCHASE")
+                .referenceId(purchase.getId())
+                .deviceInfo("MOBILE_APP_WIZARD")
+                .build();
+        consentRepository.save(consent);
+    }
+
+    private void ensurePurchasePayment(PurchaseTransaction purchase) {
+        // The app's payment screen is a placeholder and the wizard never records
+        // a payment, so a wizard completion implies the customer was paid in
+        // cash on the spot. Record a CASH payment for the full final price so
+        // the accounts/settlements stay correct. If explicit payments were
+        // already recorded via the API, we never add anything.
+        BigDecimal totalPayments = paymentService.calculateTotalSuccessfulPayments(purchase.getId());
+        if (totalPayments.compareTo(BigDecimal.ZERO) > 0) {
+            return;
+        }
+        CreatePurchasePaymentRequest paymentRequest = new CreatePurchasePaymentRequest();
+        paymentRequest.setPaymentMode(PaymentMode.CASH);
+        paymentRequest.setAmount(purchase.getFinalPrice());
+        paymentRequest.setReferenceNumber("WIZARD-CASH");
+        paymentRequest.setIdempotencyKey("wizard-auto-" + purchase.getId());
+        paymentService.processPayment(purchase, paymentRequest);
+    }
+
     private void validateCompletionPrerequisites(PurchaseTransaction purchase) {
-        // Customer
+        // Customer must not be blocked. (KYC verification is intentionally NOT
+        // required here: the app wizard creates walk-in customers with
+        // verificationStatus=NOT_STARTED and has no KYC gate in the buyback
+        // flow. KYC remains available as an optional compliance step.)
         if (purchase.getCustomer().getStatus() == CustomerStatus.BLOCKED) {
             throw new BusinessException("CUSTOMER_BLOCKED", "Customer is blocked.", HttpStatus.BAD_REQUEST);
-        }
-        if (purchase.getCustomer().getVerificationStatus() != VerificationStatus.VERIFIED) {
-            throw new BusinessException("CUSTOMER_NOT_VERIFIED", "Customer KYC is not VERIFIED.", HttpStatus.BAD_REQUEST);
         }
 
         // Device

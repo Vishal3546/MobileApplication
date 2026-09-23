@@ -45,10 +45,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex, HttpServletRequest request) {
+        // Pass through the real reason (e.g. "User is not assigned to a branch")
+        // instead of a generic message that hides the actual problem
         ErrorResponse error = ErrorResponse.builder()
                 .success(false)
                 .code("AUTH_FORBIDDEN")
-                .message("You do not have permission to access this resource")
+                .message(ex.getMessage() != null && !ex.getMessage().isBlank()
+                        ? ex.getMessage()
+                        : "You do not have permission to access this resource")
                 .path(request.getRequestURI())
                 .timestamp(LocalDateTime.now())
                 .build();

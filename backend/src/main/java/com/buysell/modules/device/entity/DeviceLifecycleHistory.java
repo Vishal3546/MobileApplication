@@ -1,6 +1,7 @@
 package com.buysell.modules.device.entity;
 
 import com.buysell.modules.branch.entity.Branch;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.buysell.modules.device.enums.LifecycleEventType;
 import com.buysell.modules.user.entity.User;
 import jakarta.persistence.*;
@@ -24,6 +25,7 @@ public class DeviceLifecycleHistory {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @JsonIgnore // returned raw by the lifecycle endpoint; lazy proxy is not serializable
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "device_id", nullable = false)
     private Device device;
@@ -38,10 +40,12 @@ public class DeviceLifecycleHistory {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
+    @JsonIgnore // lazy proxy is not serializable
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "performed_by")
     private User performedBy;
 
+    @JsonIgnore // lazy proxy is not serializable
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "branch_id")
     private Branch branch;

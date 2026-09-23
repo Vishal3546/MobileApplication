@@ -21,7 +21,7 @@ public class DashboardService {
     private final ReportSecurityService securityService;
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "dashboard", key = "@reportSecurityService.buildSecureCacheKey('summary', #requestedBranchId, #dateRangeStr)")
+    @Cacheable(value = "dashboard:v2", key = "@reportSecurityService.buildSecureCacheKey('summary', #requestedBranchId, #dateRangeStr)")
     public DashboardSummaryResponse getDashboardSummary(UUID requestedBranchId, String dateRangeStr, String customStart, String customEnd) {
         
         List<UUID> branchIds = securityService.resolveBranchScope(requestedBranchId);

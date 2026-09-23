@@ -1,12 +1,16 @@
 package com.buysell.modules.reports.dto;
 
 import lombok.Builder;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.math.BigDecimal;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class DashboardSummaryResponse {
 
     private MetricWithComparison purchasesCount;
@@ -29,6 +33,8 @@ public class DashboardSummaryResponse {
 
     @Data
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class MetricWithComparison {
         private BigDecimal currentPeriod;
         private BigDecimal previousPeriod;

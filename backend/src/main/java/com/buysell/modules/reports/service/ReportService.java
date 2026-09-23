@@ -24,7 +24,7 @@ public class ReportService {
     private final ReportExportService exportService;
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "salesReport", key = "@reportSecurityService.buildSecureCacheKey('sales', #requestedBranchId, #dateRangeStr)")
+    @Cacheable(value = "salesReport:v2", key = "@reportSecurityService.buildSecureCacheKey('sales', #requestedBranchId, #dateRangeStr)")
     public SalesReportResponse getSalesReport(UUID requestedBranchId, String dateRangeStr, String customStart,
             String customEnd) {
         List<UUID> branchIds = securityService.resolveBranchScope(requestedBranchId);
@@ -33,7 +33,7 @@ public class ReportService {
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "purchaseReport", key = "@reportSecurityService.buildSecureCacheKey('purchase', #requestedBranchId, #dateRangeStr)")
+    @Cacheable(value = "purchaseReport:v2", key = "@reportSecurityService.buildSecureCacheKey('purchase', #requestedBranchId, #dateRangeStr)")
     public PurchaseReportResponse getPurchaseReport(UUID requestedBranchId, String dateRangeStr, String customStart,
             String customEnd) {
         List<UUID> branchIds = securityService.resolveBranchScope(requestedBranchId);
@@ -42,7 +42,7 @@ public class ReportService {
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "inventoryReport", key = "@reportSecurityService.buildSecureCacheKey('inventory', #requestedBranchId, 'current')")
+    @Cacheable(value = "inventoryReport:v2", key = "@reportSecurityService.buildSecureCacheKey('inventory', #requestedBranchId, 'current')")
     public InventoryReportResponse getInventoryReport(UUID requestedBranchId) {
         List<UUID> branchIds = securityService.resolveBranchScope(requestedBranchId);
         return reportRepository.getInventoryReport(branchIds);

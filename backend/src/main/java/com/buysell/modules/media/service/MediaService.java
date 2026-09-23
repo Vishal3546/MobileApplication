@@ -63,7 +63,9 @@ public class MediaService {
         // Basic validation depending on type
         if (type == MediaType.CUSTOMER_VIDEO && !mimeType.startsWith("video/")) {
             throw new RuntimeException("Invalid video format");
-        } else if (type != MediaType.CUSTOMER_VIDEO && !mimeType.startsWith("image/") && !mimeType.equals("application/pdf")) {
+        } else if (type != MediaType.CUSTOMER_VIDEO && !mimeType.startsWith("image/") && !mimeType.equals("application/pdf")
+                // Generated purchase receipts are plain-text documents.
+                && !(type == MediaType.RECEIPT && mimeType.startsWith("text/"))) {
             throw new RuntimeException("Invalid file format");
         }
     }

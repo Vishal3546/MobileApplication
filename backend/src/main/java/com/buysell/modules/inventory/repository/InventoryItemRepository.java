@@ -34,9 +34,9 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, UU
            "FROM InventoryItem i " +
            "WHERE (cast(:status as text) IS NULL OR CAST(i.status as string) = :status) " +
            "AND (cast(:branchId as text) IS NULL OR i.branch.id = :branchId) " +
-           "AND (cast(:search as text) IS NULL OR LOWER(i.device.brand) LIKE LOWER(CONCAT('%', :search, '%')) " +
-           "OR LOWER(i.device.model) LIKE LOWER(CONCAT('%', :search, '%')) " +
-           "OR LOWER(i.device.imei1) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+           "AND (cast(:search as text) IS NULL OR LOWER(i.device.brand) LIKE LOWER(CONCAT('%', cast(:search as text), '%')) " +
+           "OR LOWER(i.device.model) LIKE LOWER(CONCAT('%', cast(:search as text), '%')) " +
+           "OR LOWER(i.device.imei1) LIKE LOWER(CONCAT('%', cast(:search as text), '%'))) " +
            "GROUP BY i.device.brand " +
            "ORDER BY COUNT(i) DESC")
     java.util.List<com.buysell.modules.inventory.dto.BrandSummaryProjection> getBrandWiseSummary(
