@@ -163,7 +163,7 @@ fun DeviceFormContent(
                     items(DeviceCatalog.brands) { brandInfo ->
                         VisualGridItem(
                             title = brandInfo.name,
-                            imageUrl = brandInfo.imageUrl,
+                            imageRes = brandInfo.logoRes,
                             isSelected = brand == brandInfo.name,
                             onClick = {
                                 brand = brandInfo.name
@@ -203,7 +203,7 @@ fun DeviceFormContent(
                     items(models) { modelInfo ->
                         VisualGridItem(
                             title = modelInfo.name,
-                            imageUrl = modelInfo.imageUrl,
+                            imageRes = modelInfo.logoRes,
                             isSelected = model == modelInfo.name,
                             onClick = {
                                 model = modelInfo.name

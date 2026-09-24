@@ -8,6 +8,7 @@ import com.mobile.app.domain.model.device.DeviceCatalog
 import com.mobile.app.domain.model.device.DeviceStatus
 import com.mobile.app.domain.model.device.ImeiVerificationState
 import com.mobile.app.domain.model.device.ModelInfo
+import com.mobile.app.R
 import com.mobile.app.domain.repository.PhoneSpecDetail
 import com.mobile.app.domain.repository.PhoneSpecsRepository
 import java.time.LocalDateTime
@@ -23,7 +24,7 @@ class PhoneSpecsRepositoryImpl @Inject constructor(
             val phones = response.data?.phones?.map { dto ->
                 ModelInfo(
                     name = dto.phoneName ?: dto.brand ?: "Unknown Device",
-                    imageUrl = dto.image ?: "",
+                    logoRes = DeviceCatalog.logoFor(dto.brand ?: ""),
                 )
             } ?: emptyList()
             Result.success(phones)
@@ -33,18 +34,8 @@ class PhoneSpecsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getBrands(): Result<List<BrandInfo>> {
-        return try {
-            val response = phoneSpecsApi.getBrands()
-            val brands = response.data?.map { dto ->
-                BrandInfo(
-                    name = dto.brandName ?: "Unknown",
-                    imageUrl = "https://logo.clearbit.com/${(dto.brandName ?: "").lowercase().replace(" ", "")}.com",
-                )
-            } ?: emptyList()
-            Result.success(brands)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        // Local catalog only: instant, offline, bundled brand tiles.
+        return Result.success(DeviceCatalog.brands)
     }
 
     override suspend fun searchPhone(query: String): Result<List<ModelInfo>> {
@@ -53,7 +44,7 @@ class PhoneSpecsRepositoryImpl @Inject constructor(
             val phones = response.data?.phones?.map { dto ->
                 ModelInfo(
                     name = dto.phoneName ?: "Unknown",
-                    imageUrl = dto.image ?: "",
+                    logoRes = R.drawable.logo_other,
                 )
             } ?: emptyList()
             Result.success(phones)
@@ -82,7 +73,7 @@ class PhoneSpecsRepositoryImpl @Inject constructor(
                 val phones = response.data?.phones?.map { dto ->
                     ModelInfo(
                         name = dto.phoneName?.trim() ?: "Unknown",
-                        imageUrl = dto.image?.let { "https://wsrv.nl/?url=$it" } ?: "",
+                        logoRes = R.drawable.logo_other,
                     )
                 } ?: emptyList()
                 Result.success(phones)

@@ -1,13 +1,15 @@
 package com.mobile.app.domain.model.device
 
+import com.mobile.app.R
+
 data class BrandInfo(
     val name: String,
-    val imageUrl: String
+    val logoRes: Int
 )
 
 data class ModelInfo(
     val name: String,
-    val imageUrl: String
+    val logoRes: Int
 )
 
 /**
@@ -24,26 +26,26 @@ data class ModelSpec(
 
 object DeviceCatalog {
 
-    // Generic placeholder image for models
-    private const val SMARTPHONE_PLACEHOLDER =
-        "https://images.unsplash.com/photo-1592890288564-76628a30a657?q=80&w=200&auto=format&fit=crop"
-
+    // Fully offline brand tiles (no dead logo.clearbit.com calls).
     val brands = listOf(
-        BrandInfo("Apple", "https://logo.clearbit.com/apple.com"),
-        BrandInfo("Samsung", "https://logo.clearbit.com/samsung.com"),
-        BrandInfo("OnePlus", "https://logo.clearbit.com/oneplus.com"),
-        BrandInfo("Google", "https://logo.clearbit.com/google.com"),
-        BrandInfo("Xiaomi", "https://logo.clearbit.com/mi.com"),
-        BrandInfo("Vivo", "https://logo.clearbit.com/vivo.com"),
-        BrandInfo("Realme", "https://logo.clearbit.com/realme.com"),
-        BrandInfo("Motorola", "https://logo.clearbit.com/motorola.com"),
-        BrandInfo("Nothing", "https://logo.clearbit.com/nothing.tech"),
-        BrandInfo("Oppo", "https://logo.clearbit.com/oppo.com"),
-        BrandInfo("iQOO", "https://logo.clearbit.com/iqoo.com"),
-        BrandInfo("Poco", "https://logo.clearbit.com/po.co"),
-        BrandInfo("Infinix", "https://logo.clearbit.com/infinixmobility.com"),
-        BrandInfo("Honor", "https://logo.clearbit.com/hihonor.com")
+        BrandInfo("Apple", R.drawable.logo_apple),
+        BrandInfo("Samsung", R.drawable.logo_samsung),
+        BrandInfo("OnePlus", R.drawable.logo_oneplus),
+        BrandInfo("Google", R.drawable.logo_google),
+        BrandInfo("Xiaomi", R.drawable.logo_xiaomi),
+        BrandInfo("Vivo", R.drawable.logo_vivo),
+        BrandInfo("Realme", R.drawable.logo_realme),
+        BrandInfo("Motorola", R.drawable.logo_motorola),
+        BrandInfo("Nothing", R.drawable.logo_nothing),
+        BrandInfo("Oppo", R.drawable.logo_oppo),
+        BrandInfo("iQOO", R.drawable.logo_iqoo),
+        BrandInfo("Poco", R.drawable.logo_poco),
+        BrandInfo("Infinix", R.drawable.logo_infinix),
+        BrandInfo("Honor", R.drawable.logo_honor)
     )
+
+    fun logoFor(brand: String): Int =
+        brands.firstOrNull { it.name.equals(brand, ignoreCase = true) }?.logoRes ?: R.drawable.logo_other
 
     // Compact builder: default RAM = 2nd option if present (the common
     // mid variant), default storage = base option.
@@ -300,8 +302,8 @@ object DeviceCatalog {
 
     /** Grid-friendly model list derived from the spec database. */
     val modelsByBrand: Map<String, List<ModelInfo>> =
-        modelSpecsByBrand.mapValues { (_, specs) ->
-            specs.map { ModelInfo(it.name, SMARTPHONE_PLACEHOLDER) }
+        modelSpecsByBrand.mapValues { (brand, specs) ->
+            specs.map { ModelInfo(it.name, logoFor(brand)) }
         }
 
     /**

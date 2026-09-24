@@ -11,8 +11,6 @@ import com.buysell.modules.customer.repository.CustomerConsentRepository;
 import com.buysell.modules.customer.service.CustomerService;
 import com.buysell.modules.device.entity.Device;
 import com.buysell.modules.device.enums.DeviceStatus;
-import com.buysell.modules.device.service.DeviceConditionService;
-import com.buysell.modules.device.service.DeviceInspectionService;
 import com.buysell.modules.device.service.DeviceService;
 import com.buysell.modules.purchase.dto.CreatePurchaseRequest;
 import com.buysell.modules.purchase.entity.PurchaseStatusHistory;
@@ -40,8 +38,6 @@ public class PurchaseService {
     private final PurchaseStatusHistoryRepository statusHistoryRepository;
     private final CustomerService customerService;
     private final DeviceService deviceService;
-    private final DeviceConditionService conditionService;
-    private final DeviceInspectionService inspectionService;
     private final CustomerConsentRepository consentRepository;
     private final PurchaseStatusService statusService;
     private final PurchasePricingService pricingService;
@@ -241,13 +237,9 @@ public class PurchaseService {
             throw new BusinessException("DEVICE_BLOCKED", "Device is blocked.", HttpStatus.BAD_REQUEST);
         }
 
-        // Condition & Inspection check
-        if (conditionService.getConditionHistory(purchase.getDevice().getId()).isEmpty()) {
-            throw new BusinessException("CONDITION_REQUIRED", "Device condition record is required.", HttpStatus.BAD_REQUEST);
-        }
-        if (inspectionService.getInspectionHistory(purchase.getDevice().getId()).isEmpty()) {
-            throw new BusinessException("INSPECTION_REQUIRED", "Device inspection record is required.", HttpStatus.BAD_REQUEST);
-        }
+        // Condition & Inspection are OPTIONAL now: the shop uses the app only
+        // for record keeping (kaunsa phone kisse liya, kisko becha) — no device
+        // testing. Old records that do have them remain untouched.
 
         // Consent Check
         List<CustomerConsent> consents = consentRepository.findByReferenceTypeAndReferenceId("PURCHASE", purchase.getId());

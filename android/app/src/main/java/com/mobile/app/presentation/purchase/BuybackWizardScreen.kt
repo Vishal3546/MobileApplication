@@ -16,9 +16,7 @@ import com.mobile.app.data.remote.dto.CreateCustomerRequestDto
 import com.mobile.app.presentation.customer.CustomerActionState
 import com.mobile.app.presentation.customer.CustomerFormContent
 import com.mobile.app.presentation.customer.CustomerViewModel
-import com.mobile.app.presentation.device.condition.DeviceConditionContent
 import com.mobile.app.presentation.device.create.DeviceFormContent
-import com.mobile.app.presentation.device.inspection.DeviceInspectionContent
 import com.mobile.app.domain.model.device.PricingBreakdown
 import java.math.BigDecimal
 
@@ -66,14 +64,14 @@ fun BuybackWizardScreen(
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
             LinearProgressIndicator(
-                progress = wizardState.currentStep / 6f,
+                progress = wizardState.currentStep / 4f,
                 modifier = Modifier.fillMaxWidth()
             )
             
             when (wizardState.currentStep) {
                 1 -> {
                     DeviceFormContent(
-                        buttonText = "Next: Functional Test",
+                        buttonText = "Next: Set Price",
                         isLoading = wizardState.isLoading,
                         isFetchingImei = wizardState.isFetchingImei,
                         isFetchingModels = isFetchingModels,
@@ -86,22 +84,6 @@ fun BuybackWizardScreen(
                     )
                 }
                 2 -> {
-                    DeviceInspectionContent(
-                        buttonText = "Next: Physical Condition",
-                        isLoading = wizardState.isLoading,
-                        errorMessage = wizardState.error,
-                        onSubmit = { viewModel.submitInspection(it) }
-                    )
-                }
-                3 -> {
-                    DeviceConditionContent(
-                        buttonText = "Next: Pricing",
-                        isLoading = wizardState.isLoading,
-                        errorMessage = wizardState.error,
-                        onSubmit = { viewModel.submitCondition(it) }
-                    )
-                }
-                4 -> {
                     ValuationStep(
                         breakdown = wizardState.pricingBreakdown,
                         onNext = { suggested, negotiated, final ->
@@ -109,7 +91,7 @@ fun BuybackWizardScreen(
                         }
                     )
                 }
-                5 -> {
+                3 -> {
                     CustomerFormContent(
                         buttonText = "Complete Purchase",
                         isLoading = customerActionState is CustomerActionState.Loading || wizardState.isLoading,
@@ -121,7 +103,7 @@ fun BuybackWizardScreen(
                         }
                     )
                 }
-                6 -> {
+                4 -> {
                     PurchaseCompletionStep(
                         purchase = wizardState.currentPurchase,
                         isLoading = wizardState.isLoading,

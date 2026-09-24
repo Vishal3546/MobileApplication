@@ -150,9 +150,6 @@ class PurchaseServiceTest {
         when(purchaseRepository.findByIdWithLock(purchaseId)).thenReturn(Optional.of(purchase));
         when(currentUserService.hasPermission("SUPER_ADMIN")).thenReturn(true);
         when(currentUserService.getCurrentUserId()).thenReturn(currentUser.getId());
-        
-        when(conditionService.getConditionHistory(deviceId)).thenReturn(List.of(new DeviceCondition()));
-        when(inspectionService.getInspectionHistory(deviceId)).thenReturn(List.of(new DeviceInspection()));
         when(consentRepository.findByReferenceTypeAndReferenceId("PURCHASE", purchaseId)).thenReturn(List.of(new CustomerConsent()));
         when(paymentService.calculateTotalSuccessfulPayments(purchaseId)).thenReturn(new BigDecimal("1000.00"));
         

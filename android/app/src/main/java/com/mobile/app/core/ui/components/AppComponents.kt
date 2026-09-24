@@ -2,6 +2,7 @@ package com.mobile.app.core.ui.components
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -19,7 +20,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -29,8 +29,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
 
 @Composable
 fun PremiumButton(
@@ -101,7 +99,7 @@ fun AppCard(
 @Composable
 fun VisualGridItem(
     title: String,
-    imageUrl: String,
+    imageRes: Int,
     isSelected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -129,15 +127,12 @@ fun VisualGridItem(
             shape = CircleShape,
             color = Color.White
         ) {
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(imageUrl)
-                    .crossfade(true)
-                    .build(),
+            Image(
+                painter = painterResource(id = imageRes),
                 contentDescription = title,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp),
+                    .padding(14.dp),
                 contentScale = ContentScale.Fit
             )
         }

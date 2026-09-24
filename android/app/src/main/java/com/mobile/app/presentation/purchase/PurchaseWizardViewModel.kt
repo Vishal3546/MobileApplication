@@ -7,8 +7,6 @@ import com.mobile.app.domain.model.purchase.PurchaseStatus
 import com.mobile.app.domain.model.device.*
 import com.mobile.app.domain.repository.PurchaseRepository
 import com.mobile.app.domain.repository.device.DeviceRepository
-import com.mobile.app.domain.repository.device.DeviceInspectionRepository
-import com.mobile.app.domain.repository.device.DeviceConditionRepository
 import com.mobile.app.domain.repository.PhoneSpecsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,18 +24,12 @@ data class WizardState(
     // Step 1: Device Info
     val deviceCreate: DeviceCreate? = null,
     
-    // Step 2: Inspection
-    val inspectionCreate: DeviceInspectionCreate? = null,
-    
-    // Step 3: Condition
-    val conditionCreate: DeviceConditionCreate? = null,
-    
-    // Step 4: Valuation
+    // Step 2: Pricing (simple hisab — no tests)
     val suggestedPrice: BigDecimal = BigDecimal.ZERO,
     val negotiatedPrice: BigDecimal = BigDecimal.ZERO,
     val finalPrice: BigDecimal = BigDecimal.ZERO,
     
-    // Step 5: Customer
+    // Step 3: Customer
     val customerId: String? = null,
     
     // Pricing Breakdown
@@ -56,8 +48,6 @@ data class WizardState(
 class PurchaseWizardViewModel @Inject constructor(
     private val purchaseRepository: PurchaseRepository,
     private val deviceRepository: DeviceRepository,
-    private val inspectionRepository: DeviceInspectionRepository,
-    private val conditionRepository: DeviceConditionRepository,
     private val phoneSpecsRepository: PhoneSpecsRepository
 ) : ViewModel() {
     private val _wizardState = MutableStateFlow(WizardState())
@@ -124,9 +114,20 @@ class PurchaseWizardViewModel @Inject constructor(
             val result = deviceRepository.createDevice(device)
             result.fold(
                 onSuccess = { createdDevice ->
+                    // No test/inspection steps any more: price straight from
+                    // brand/model base price, owner adjusts in the next step.
+                    val breakdown = PricingCalculator.calculatePrice(
+                        brand = device.brand,
+                        model = device.model,
+                        inspection = null,
+                        condition = null
+                    )
                     _wizardState.value = _wizardState.value.copy(
                         deviceId = createdDevice.id,
                         deviceCreate = device,
+                        pricingBreakdown = breakdown,
+                        suggestedPrice = breakdown.basePrice,
+                        finalPrice = breakdown.finalPrice,
                         currentStep = 2,
                         isLoading = false
                     )
@@ -138,69 +139,17 @@ class PurchaseWizardViewModel @Inject constructor(
         }
     }
 
-    // --- Step 2: Inspection ---
-    fun submitInspection(inspection: DeviceInspectionCreate) {
-        val deviceId = _wizardState.value.deviceId ?: return
-        viewModelScope.launch {
-            _wizardState.value = _wizardState.value.copy(isLoading = true, error = null)
-            val result = inspectionRepository.createInspection(deviceId, inspection)
-            result.fold(
-                onSuccess = {
-                    _wizardState.value = _wizardState.value.copy(
-                        inspectionCreate = inspection,
-                        currentStep = 3,
-                        isLoading = false
-                    )
-                },
-                onFailure = { e ->
-                    _wizardState.value = _wizardState.value.copy(isLoading = false, error = e.message)
-                }
-            )
-        }
-    }
-
-    // --- Step 3: Condition ---
-    fun submitCondition(condition: DeviceConditionCreate) {
-        val deviceId = _wizardState.value.deviceId ?: return
-        viewModelScope.launch {
-            _wizardState.value = _wizardState.value.copy(isLoading = true, error = null)
-            val result = conditionRepository.createCondition(deviceId, condition)
-            result.fold(
-                onSuccess = {
-                    val breakdown = PricingCalculator.calculatePrice(
-                        brand = _wizardState.value.deviceCreate?.brand ?: "",
-                        model = _wizardState.value.deviceCreate?.model ?: "",
-                        inspection = _wizardState.value.inspectionCreate,
-                        condition = condition
-                    )
-                    
-                    _wizardState.value = _wizardState.value.copy(
-                        conditionCreate = condition,
-                        pricingBreakdown = breakdown,
-                        suggestedPrice = breakdown.basePrice,
-                        finalPrice = breakdown.finalPrice,
-                        currentStep = 4,
-                        isLoading = false
-                    )
-                },
-                onFailure = { e ->
-                    _wizardState.value = _wizardState.value.copy(isLoading = false, error = e.message)
-                }
-            )
-        }
-    }
-
-    // --- Step 4: Valuation ---
+    // --- Step 2: Pricing ---
     fun setPrices(suggested: BigDecimal, negotiated: BigDecimal, final: BigDecimal) {
         _wizardState.value = _wizardState.value.copy(
             suggestedPrice = suggested,
             negotiatedPrice = negotiated,
             finalPrice = final,
-            currentStep = 5
+            currentStep = 3
         )
     }
 
-    // --- Step 5: Customer & Final Purchase ---
+    // --- Step 3: Customer & Final Purchase ---
     fun createFinalPurchase(customerId: String, notes: String?) {
         val deviceId = _wizardState.value.deviceId ?: return
         val state = _wizardState.value
@@ -219,7 +168,7 @@ class PurchaseWizardViewModel @Inject constructor(
                 _wizardState.value = _wizardState.value.copy(
                     purchaseId = purchase.id,
                     currentPurchase = purchase,
-                    currentStep = 6,
+                    currentStep = 4,
                     isLoading = false
                 )
             }.onFailure { e ->
