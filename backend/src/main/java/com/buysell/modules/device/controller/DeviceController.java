@@ -91,8 +91,8 @@ public class DeviceController {
     @PostMapping("/{id}/verify-imei")
     @PreAuthorize("hasAuthority('UPDATE_DEVICE')")
     @Operation(summary = "Manually trigger IMEI verification event")
-    public void verifyImei(@PathVariable UUID id) {
-        deviceService.recordImeiVerification(id);
+    public com.buysell.modules.device.dto.ImeiVerificationResult verifyImei(@PathVariable UUID id) {
+        return deviceService.recordImeiVerification(id);
     }
 
     @PostMapping("/{id}/conditions")

@@ -2,6 +2,7 @@ package com.buysell.modules.device.service;
 
 import com.buysell.modules.device.entity.Device;
 import com.buysell.modules.device.entity.DeviceInspection;
+import com.buysell.modules.device.enums.InspectionStatus;
 import com.buysell.modules.device.enums.LifecycleEventType;
 import com.buysell.modules.device.repository.DeviceInspectionRepository;
 import com.buysell.security.CurrentUserService;
@@ -44,7 +45,7 @@ public class DeviceInspectionService {
                 .vibrationTest(request.getVibrationTest())
                 .networkTest(request.getNetworkTest())
                 .notes(request.getNotes())
-                .finalStatus(request.getFinalStatus())
+                .finalStatus(resolveFinalStatus(request))
                 .inspectedBy(currentUserService.getCurrentUser())
                 .build();
 
@@ -53,6 +54,30 @@ public class DeviceInspectionService {
         lifecycleService.recordEvent(device, LifecycleEventType.INSPECTION_CREATED, inspection.getId().toString(), "Device inspection completed with status " + inspection.getFinalStatus());
 
         return inspection;
+    }
+
+    /**
+     * The app's inspection DTO has no finalStatus field, so it arrives null and the
+     * NOT NULL DB constraint rejects the insert (HTTP 409). Derive it from the
+     * individual test results instead: any FAIL -> FAIL, any PASS -> PASS, else NOT_TESTED.
+     */
+    private InspectionStatus resolveFinalStatus(DeviceInspection request) {
+        if (request.getFinalStatus() != null) {
+            return request.getFinalStatus();
+        }
+        java.util.List<InspectionStatus> tests = java.util.Arrays.asList(
+                request.getDisplayTest(), request.getTouchTest(), request.getCameraTest(),
+                request.getSpeakerTest(), request.getMicrophoneTest(), request.getChargingTest(),
+                request.getWifiTest(), request.getBluetoothTest(), request.getSimTest(),
+                request.getFingerprintTest(), request.getFaceIdTest(), request.getBatteryTest(),
+                request.getFlashTest(), request.getVibrationTest(), request.getNetworkTest());
+        if (tests.contains(InspectionStatus.FAIL)) {
+            return InspectionStatus.FAIL;
+        }
+        if (tests.contains(InspectionStatus.PASS)) {
+            return InspectionStatus.PASS;
+        }
+        return InspectionStatus.NOT_TESTED;
     }
 
     @Transactional(readOnly = true)

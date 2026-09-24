@@ -1,5 +1,6 @@
 package com.buysell.modules.device.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.buysell.modules.device.enums.InspectionStatus;
 import com.buysell.modules.user.entity.User;
 import jakarta.persistence.*;
@@ -23,6 +24,7 @@ public class DeviceInspection {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @JsonIgnore // returned raw by inspection endpoints; lazy proxy is not serializable
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "device_id", nullable = false)
     private Device device;
@@ -94,6 +96,7 @@ public class DeviceInspection {
     @Column(name = "final_status", nullable = false, length = 20)
     private InspectionStatus finalStatus;
 
+    @JsonIgnore // lazy proxy is not serializable
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "inspected_by")
     private User inspectedBy;

@@ -1,6 +1,7 @@
 package com.buysell.modules.purchase.dto;
 
 import com.buysell.modules.purchase.enums.TransactionStatus;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 
@@ -21,6 +22,8 @@ public class PurchaseResponse {
     private BigDecimal negotiatedPrice;
     private BigDecimal finalPrice;
     private String notes;
+    // App's PurchaseDto reads this as "status" (PurchaseStatusDto enum)
+    @JsonProperty("status")
     private TransactionStatus transactionStatus;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

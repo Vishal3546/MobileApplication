@@ -156,13 +156,22 @@ public class DeviceService {
     }
     
     @Transactional
-    public void recordImeiVerification(UUID id) {
+    public com.buysell.modules.device.dto.ImeiVerificationResult recordImeiVerification(UUID id) {
         Device device = getDeviceById(id);
-        
-        // At this level we already validated on creation, but this is a manual trigger event
-        String imei1 = imeiVerificationProvider.verifyImei(device.getImei1(), "IMEI1");
-        
+
+        // At this level we already validated on creation, but this is a manual trigger event.
+        // Exclude THIS device from the duplicate check — the IMEI obviously belongs to it,
+        // otherwise verifying any saved device always fails with "already exists".
+        String imei1 = imeiVerificationProvider.verifyImei(device.getImei1(), "IMEI1", device.getId());
+
         lifecycleService.recordEvent(device, LifecycleEventType.IMEI_VERIFIED, null, "IMEI verification successful for " + imei1);
+
+        return com.buysell.modules.device.dto.ImeiVerificationResult.builder()
+                .deviceId(device.getId())
+                .state("VERIFIED")
+                .message("IMEI verification successful for " + imei1)
+                .verifiedAt(java.time.LocalDateTime.now().toString())
+                .build();
     }
 
     @Transactional(readOnly = true)

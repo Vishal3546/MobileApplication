@@ -287,6 +287,54 @@ public class PurchaseService {
                 .orElseThrow(() -> new BusinessException("PURCHASE_NOT_FOUND", "Purchase not found", HttpStatus.NOT_FOUND));
         return validateAccess(purchase);
     }
+
+    /**
+     * Paginated purchase list for the app's purchase list screen
+     * (GET /api/v1/purchases). Non-super-admins only see their own branch.
+     * Built with a Specification so null filters simply drop out of the SQL
+     * (typed-null HQL parameters make PostgreSQL infer bytea and fail).
+     */
+    @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<PurchaseTransaction> getPurchases(
+            String search, TransactionStatus status, java.time.LocalDateTime start, java.time.LocalDateTime end,
+            org.springframework.data.domain.Pageable pageable) {
+        UUID branchId = currentUserService.isSuperAdmin() ? null : currentUserService.getCurrentBranch().getId();
+        final String normalizedSearch = (search == null || search.trim().isEmpty()) ? null : search.trim();
+        final UUID fBranchId = branchId;
+        final TransactionStatus fStatus = status;
+        final java.time.LocalDateTime fStart = start;
+        final java.time.LocalDateTime fEnd = end;
+
+        org.springframework.data.jpa.domain.Specification<PurchaseTransaction> spec = (root, query, cb) -> {
+            java.util.List<jakarta.persistence.criteria.Predicate> predicates = new java.util.ArrayList<>();
+            if (fBranchId != null) {
+                predicates.add(cb.equal(root.get("branch").get("id"), fBranchId));
+            }
+            if (fStatus != null) {
+                predicates.add(cb.equal(root.get("transactionStatus"), fStatus));
+            }
+            if (fStart != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("createdAt"), fStart));
+            }
+            if (fEnd != null) {
+                predicates.add(cb.lessThan(root.get("createdAt"), fEnd));
+            }
+            if (normalizedSearch != null) {
+                String like = "%" + normalizedSearch.toLowerCase() + "%";
+                jakarta.persistence.criteria.Expression<String> customerName = cb.lower(
+                        cb.concat(root.get("customer").get("firstName"),
+                                  cb.concat(" ", root.get("customer").get("lastName"))));
+                predicates.add(cb.or(
+                        cb.like(cb.lower(root.get("purchaseNumber")), like),
+                        cb.like(cb.lower(root.get("device").get("imei1")), like),
+                        cb.like(cb.lower(root.get("device").get("brand")), like),
+                        cb.like(cb.lower(root.get("device").get("model")), like),
+                        cb.like(customerName, like)));
+            }
+            return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+        };
+        return purchaseRepository.findAll(spec, pageable);
+    }
     
     @Transactional
     public PurchaseTransaction getAndValidateAccessWithLock(UUID purchaseId) {

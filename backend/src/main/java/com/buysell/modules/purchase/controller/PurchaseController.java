@@ -1,5 +1,7 @@
 package com.buysell.modules.purchase.controller;
 
+import com.buysell.exception.BusinessException;
+import io.swagger.v3.oas.annotations.Operation;
 import com.buysell.modules.purchase.dto.CreatePurchasePaymentRequest;
 import com.buysell.modules.purchase.dto.CreatePurchaseRequest;
 import com.buysell.modules.purchase.dto.PurchasePaymentResponse;
@@ -32,6 +34,47 @@ public class PurchaseController {
     @ResponseStatus(HttpStatus.CREATED)
     public PurchaseResponse createPurchase(@Valid @RequestBody CreatePurchaseRequest request) {
         return purchaseMapper.toResponse(purchaseService.createPurchase(request));
+    }
+
+    @GetMapping
+    @PreAuthorize("hasAuthority('VIEW_PURCHASES')")
+    @Operation(summary = "List purchases (paginated, app purchase list screen)")
+    public org.springframework.data.domain.Page<PurchaseResponse> getPurchases(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
+            @org.springframework.data.web.PageableDefault(size = 20, sort = "createdAt",
+                    direction = org.springframework.data.domain.Sort.Direction.DESC)
+            org.springframework.data.domain.Pageable pageable) {
+        TransactionStatus statusEnum = null;
+        if (status != null && !status.trim().isEmpty()) {
+            try {
+                statusEnum = TransactionStatus.valueOf(status.trim().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new BusinessException("INVALID_STATUS", "Unknown purchase status: " + status, HttpStatus.BAD_REQUEST);
+            }
+        }
+        java.time.LocalDateTime start = parseDate(startDate, "startDate");
+        java.time.LocalDateTime end = parseDate(endDate, "endDate");
+        return purchaseService.getPurchases(search, statusEnum, start, end, pageable)
+                .map(purchaseMapper::toResponse);
+    }
+
+    private java.time.LocalDateTime parseDate(String value, String field) {
+        if (value == null || value.trim().isEmpty()) return null;
+        String v = value.trim();
+        try {
+            return java.time.LocalDateTime.parse(v); // full ISO date-time
+        } catch (Exception ignored) {
+            try {
+                // date-only: start -> start of day, end -> start of next day (exclusive)
+                java.time.LocalDate d = java.time.LocalDate.parse(v);
+                return "endDate".equals(field) ? d.plusDays(1).atStartOfDay() : d.atStartOfDay();
+            } catch (Exception e) {
+                throw new BusinessException("INVALID_DATE", field + " must be an ISO date or date-time: " + value, HttpStatus.BAD_REQUEST);
+            }
+        }
     }
 
     @GetMapping("/{id}")

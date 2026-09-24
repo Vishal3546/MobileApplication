@@ -1,5 +1,6 @@
 package com.buysell.modules.device.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.buysell.modules.device.enums.DeviceStatus;
 import com.buysell.modules.user.entity.User;
 import jakarta.persistence.*;
@@ -56,10 +57,12 @@ public class Device {
     @Builder.Default
     private DeviceStatus status = DeviceStatus.ACTIVE;
 
+    @JsonIgnore // lazy proxy is not serializable when raw Device appears in JSON chains
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     private User createdBy;
 
+    @JsonIgnore // lazy proxy is not serializable when raw Device appears in JSON chains
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "updated_by")
     private User updatedBy;

@@ -17,7 +17,8 @@ import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.Lock;
 
 @Repository
-public interface PurchaseTransactionRepository extends JpaRepository<PurchaseTransaction, UUID> {
+public interface PurchaseTransactionRepository extends JpaRepository<PurchaseTransaction, UUID>,
+        org.springframework.data.jpa.repository.JpaSpecificationExecutor<PurchaseTransaction> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM PurchaseTransaction p WHERE p.id = :id")

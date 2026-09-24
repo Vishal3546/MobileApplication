@@ -77,6 +77,10 @@ public class DeviceMapper {
                 .brand(device.getBrand())
                 .model(device.getModel())
                 .status(device.getStatus())
+                .variant(device.getVariant())
+                .color(device.getColor())
+                .storage(device.getStorageGb() != null ? device.getStorageGb() + " GB" : null)
+                .ram(device.getRamGb() != null ? device.getRamGb() + " GB" : null)
                 .build();
     }
 

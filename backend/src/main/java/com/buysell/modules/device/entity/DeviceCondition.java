@@ -1,5 +1,6 @@
 package com.buysell.modules.device.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.buysell.modules.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -22,6 +23,7 @@ public class DeviceCondition {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @JsonIgnore // returned raw by condition endpoints; lazy proxy is not serializable
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "device_id", nullable = false)
     private Device device;
@@ -71,6 +73,7 @@ public class DeviceCondition {
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
 
+    @JsonIgnore // lazy proxy is not serializable
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     private User createdBy;

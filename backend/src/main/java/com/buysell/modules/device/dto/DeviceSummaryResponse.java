@@ -14,4 +14,10 @@ public class DeviceSummaryResponse {
     private String brand;
     private String model;
     private DeviceStatus status;
+    // The app's device list row renders these — without them every device
+    // shows "N/A • N/A RAM / N/A Storage".
+    private String variant;
+    private String color;
+    private String storage;
+    private String ram;
 }
