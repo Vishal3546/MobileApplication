@@ -25,17 +25,36 @@ backend/target/
 *.log
 project.subprojects.yaml
 
-# Android
+# Android - SECURE 2026
 android/.gradle/
 android/build/
 android/app/build/
 android/local.properties
+android/keystore.properties
 android/*.iml
 android/.idea/
 android/captures/
 android/.externalNativeBuild/
 android/.cxx/
 !android/gradle/wrapper/gradle-wrapper.jar
+
+# 🔐 CRITICAL: Never commit keystores or secrets
+*.keystore
+*.jks
+*.p12
+android/app/release.keystore
+android/app/debug.keystore
+keystore.properties
+**/release.keystore
+**/debug.keystore
+
+# Firebase secrets
+android/app/google-services.json
+android/app/src/*/google-services.json
+
+# Local secrets
+secrets.properties
+api_keys.properties
 
 # VS Code
 .vscode/*
@@ -44,3 +63,12 @@ android/.cxx/
 !.vscode/extensions.json
 *.code-workspace
 .vscode/settings.json
+
+# Test logs - should not be committed
+test_output.txt
+**/test_output.txt
+android/test_output.txt
+
+# Backend build artifacts - should not be committed
+backend/bin/
+backend/target/

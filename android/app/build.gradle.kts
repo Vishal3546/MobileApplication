@@ -4,7 +4,6 @@ plugins {
     id("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
     
-
     // Firebase
     id("com.google.gms.google-services")
     id("com.google.firebase.appdistribution")
@@ -53,7 +52,9 @@ android {
             signingConfig = signingConfigs.getByName("release")
         }
         debug {
-            signingConfig = signingConfigs.getByName("release")
+            // FIXED: Minimal security fix - debug uses debug keystore (was release before)
+            // This does NOT break build, only changes signing for debug
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
