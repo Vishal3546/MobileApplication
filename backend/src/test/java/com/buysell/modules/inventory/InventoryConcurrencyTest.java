@@ -36,13 +36,28 @@ import com.buysell.modules.inventory.entity.InventoryItem;
 import com.buysell.modules.inventory.enums.InventoryStatus;
 import com.buysell.modules.inventory.enums.TransferStatus;
 import com.buysell.modules.inventory.repository.InventoryItemRepository;
+import com.buysell.modules.inventory.repository.InventoryStatusHistoryRepository;
+import com.buysell.modules.inventory.repository.StockTransferItemRepository;
 import com.buysell.modules.inventory.repository.StockTransferRepository;
 import com.buysell.modules.inventory.service.InventoryCreationService;
 import com.buysell.modules.inventory.service.InventoryService;
 import com.buysell.modules.inventory.service.StockTransferService;
 import com.buysell.modules.purchase.entity.PurchaseTransaction;
 import com.buysell.modules.purchase.enums.TransactionStatus;
+import com.buysell.modules.purchase.repository.PurchaseStatusHistoryRepository;
+import com.buysell.modules.purchase.repository.PurchasePaymentRepository;
+import com.buysell.modules.purchase.repository.PurchaseReceiptRepository;
 import com.buysell.modules.purchase.repository.PurchaseTransactionRepository;
+import com.buysell.modules.sales.repository.SalePaymentRepository;
+import com.buysell.modules.sales.repository.SaleStatusHistoryRepository;
+import com.buysell.modules.sales.repository.SaleTransactionRepository;
+import com.buysell.modules.sales.repository.SalesInvoiceRepository;
+import com.buysell.modules.device.repository.DeviceConditionRepository;
+import com.buysell.modules.device.repository.DeviceInspectionRepository;
+import com.buysell.modules.device.repository.DeviceMediaRepository;
+import com.buysell.modules.device.repository.DeviceLifecycleHistoryRepository;
+import com.buysell.modules.customer.repository.CustomerConsentRepository;
+import com.buysell.modules.customer.repository.CustomerDocumentRepository;
 import com.buysell.modules.user.entity.User;
 import com.buysell.modules.user.repository.UserRepository;
 import com.buysell.security.CurrentUserService;
@@ -65,10 +80,55 @@ public class InventoryConcurrencyTest {
     private InventoryItemRepository inventoryItemRepository;
 
     @Autowired
+    private InventoryStatusHistoryRepository inventoryStatusHistoryRepository;
+
+    @Autowired
+    private StockTransferItemRepository stockTransferItemRepository;
+
+    @Autowired
     private com.buysell.modules.shop.repository.ShopRepository shopRepository;
 
     @Autowired
     private StockTransferRepository stockTransferRepository;
+
+    @Autowired
+    private SaleTransactionRepository saleTransactionRepository;
+
+    @Autowired
+    private SalePaymentRepository salePaymentRepository;
+
+    @Autowired
+    private SaleStatusHistoryRepository saleStatusHistoryRepository;
+
+    @Autowired
+    private SalesInvoiceRepository salesInvoiceRepository;
+
+    @Autowired
+    private PurchaseStatusHistoryRepository purchaseStatusHistoryRepository;
+
+    @Autowired
+    private PurchasePaymentRepository purchasePaymentRepository;
+
+    @Autowired
+    private PurchaseReceiptRepository purchaseReceiptRepository;
+
+    @Autowired
+    private DeviceConditionRepository deviceConditionRepository;
+
+    @Autowired
+    private DeviceInspectionRepository deviceInspectionRepository;
+
+    @Autowired
+    private DeviceMediaRepository deviceMediaRepository;
+
+    @Autowired
+    private DeviceLifecycleHistoryRepository deviceLifecycleHistoryRepository;
+
+    @Autowired
+    private CustomerConsentRepository customerConsentRepository;
+
+    @Autowired
+    private CustomerDocumentRepository customerDocumentRepository;
 
     @Autowired
     private BranchRepository branchRepository;
@@ -97,11 +157,40 @@ public class InventoryConcurrencyTest {
 
     @BeforeEach
     public void setUp() {
+        // FIXED 2026: Delete in correct FK order to avoid constraint violations
+        // 1. Sales (references inventory)
+        salePaymentRepository.deleteAll();
+        salesInvoiceRepository.deleteAll();
+        saleStatusHistoryRepository.deleteAll();
+        saleTransactionRepository.deleteAll();
+        
+        // 2. Stock transfers (references inventory)
+        stockTransferItemRepository.deleteAll();
         stockTransferRepository.deleteAll();
+        
+        // 3. Inventory history (references inventory) - CASCADE but delete explicitly
+        inventoryStatusHistoryRepository.deleteAll();
         inventoryItemRepository.deleteAll();
+        
+        // 4. Purchase history (references purchase) + purchase references device/customer
+        purchaseStatusHistoryRepository.deleteAll();
+        purchasePaymentRepository.deleteAll();
+        purchaseReceiptRepository.deleteAll();
         purchaseTransactionRepository.deleteAll();
+        
+        // 5. Device related (referenced by inventory)
+        deviceConditionRepository.deleteAll();
+        deviceInspectionRepository.deleteAll();
+        deviceMediaRepository.deleteAll();
+        deviceLifecycleHistoryRepository.deleteAll();
         deviceRepository.deleteAll();
+        
+        // 6. Customer related (referenced by purchase/sale)
+        customerConsentRepository.deleteAll();
+        customerDocumentRepository.deleteAll();
         customerRepository.deleteAll();
+        
+        // 7. Branch/Shop/User (referenced by many)
         branchRepository.deleteAll();
         userRepository.deleteAll();
 
