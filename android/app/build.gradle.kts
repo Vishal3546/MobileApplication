@@ -52,13 +52,11 @@ android {
             signingConfig = signingConfigs.getByName("release")
         }
         debug {
-            // FIXED 2026: Security + Package conflict fix
-            // 1. Debug uses debug keystore (was release before) - secure
-            // 2. Add applicationIdSuffix for debug to avoid conflict with release
-            // This allows debug and release to co-exist, and fixes "package conflicts" on update
-            // when signature changes from old release-signed debug to new debug-signed debug
-            applicationIdSuffix = ".debug"
-            versionNameSuffix = "-debug"
+            // FIXED 2026: Security fix - debug uses debug keystore (was release before)
+            // NOTE: Package conflict on 2nd phone is ONE-TIME due to signature change
+            // Solution: Uninstall old app from 2nd phone, then install new
+            // DO NOT add applicationIdSuffix - breaks Firebase google-services.json
+            // which only has com.mobile.app, not com.mobile.app.debug
             signingConfig = signingConfigs.getByName("debug")
             isDebuggable = true
         }
