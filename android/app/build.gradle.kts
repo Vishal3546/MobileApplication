@@ -52,9 +52,15 @@ android {
             signingConfig = signingConfigs.getByName("release")
         }
         debug {
-            // FIXED: Minimal security fix - debug uses debug keystore (was release before)
-            // This does NOT break build, only changes signing for debug
+            // FIXED 2026: Security + Package conflict fix
+            // 1. Debug uses debug keystore (was release before) - secure
+            // 2. Add applicationIdSuffix for debug to avoid conflict with release
+            // This allows debug and release to co-exist, and fixes "package conflicts" on update
+            // when signature changes from old release-signed debug to new debug-signed debug
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
             signingConfig = signingConfigs.getByName("debug")
+            isDebuggable = true
         }
     }
     compileOptions {
